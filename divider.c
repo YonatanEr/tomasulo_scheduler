@@ -21,12 +21,14 @@ void set_up_divider_units(Dividers* dividers){
 
 
 void print_dividers(Dividers* dividers){
+    printf("print_dividers\n");
     for (int i=0; i<dividers->div_nr_units; i++){
-        printf("busy[%d] = %s\n", i, dividers->busy[i]?"True":"False");
+        printf("    busy[%d] = %s\n", i, dividers->busy[i]?"True":"False");
     }
-    printf("div_nr_units = %d\n", dividers->div_nr_units);
-    printf("div_nr_reservation = %d\n", dividers->div_nr_reservation);
-    printf("div_delay = %d\n", dividers->div_delay);
+    printf("    div_nr_units = %d\n", dividers->div_nr_units);
+    printf("    div_nr_reservation = %d\n", dividers->div_nr_reservation);
+    printf("    div_delay = %d\n", dividers->div_delay);
+    printf("\n");
 }
 
 

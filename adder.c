@@ -21,12 +21,14 @@ void set_up_adder_units(Adders* adders){
 
 
 void print_adders(Adders* adders){
+    printf("print_adders\n");
     for (int i=0; i<adders->add_nr_units; i++){
-        printf("busy[%d] = %s\n", i, adders->busy[i]?"True":"False");
+        printf("    busy[%d] = %s\n", i, adders->busy[i]?"True":"False");
     }
-    printf("add_nr_units = %d\n", adders->add_nr_units);
-    printf("add_nr_reservation = %d\n", adders->add_nr_reservation);
-    printf("add_delay = %d\n", adders->add_delay);
+    printf("    add_nr_units = %d\n", adders->add_nr_units);
+    printf("    add_nr_reservation = %d\n", adders->add_nr_reservation);
+    printf("    add_delay = %d\n", adders->add_delay);
+    printf("\n");
 }
 
 

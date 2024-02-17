@@ -26,24 +26,22 @@ SimulationArgs parse_args(char **argv){
 
 
 void print_args(SimulationArgs sim_args){
-    printf("sim_args.cfg = %s\n", sim_args.cfg);
-    printf("sim_args.memin = %s\n", sim_args.memin);
-    printf("sim_args.regout = %s\n", sim_args.regout);
-    printf("sim_args.traceinst = %s\n", sim_args.traceinst);
-    printf("sim_args.tracecdb = %s\n", sim_args.tracecdb);
+    printf("print_args\n");
+    printf("    sim_args.cfg = %s\n", sim_args.cfg);
+    printf("    sim_args.memin = %s\n", sim_args.memin);
+    printf("    sim_args.regout = %s\n", sim_args.regout);
+    printf("    sim_args.traceinst = %s\n", sim_args.traceinst);
+    printf("    sim_args.tracecdb = %s\n", sim_args.tracecdb);
+    printf("\n");
 }
 
-
-void handle_instrctions(CPU* cpu){
-    cpu->instructions_queue;
-}
 
 
 void fetch(CPU* cpu, char* memin, FILE* memin_fp){
     char* line = (char*) calloc (1, MAX_INSTRUCTION_FILE_LINE_LENGTH);
     assert(line);
     char* ptr;
-    while (fgets(line, MAX_INSTRUCTION_FILE_LINE_LENGTH, memin_fp) != NULL){
+    while (fgets(line, MAX_INSTRUCTION_FILE_LINE_LENGTH, memin_fp)){
         int inst = strtol(line, &ptr, 16);
         Instruction* instruction = read_instruction(inst);
         print_instruction(instruction);
@@ -57,12 +55,15 @@ void fetch(CPU* cpu, char* memin, FILE* memin_fp){
 int main(int argc, char **argv){
     assert(argc==6);
     SimulationArgs sim_args = parse_args(argv);
+    print_args(sim_args);
     CPU* cpu = init_cpu(sim_args.cfg);
     FILE* memin_fp = fopen(sim_args.memin, "r");
     assert(memin_fp);
+    print_adders(cpu->adders);
+    print_multipliers(cpu->multipliers);
+    print_dividers(cpu->dividers);
     while (!cpu->instructions_queue.halt){
         fetch(cpu, sim_args.memin, memin_fp);
-        issue();
     }
     fclose(memin_fp);
     regout(cpu->registers, sim_args.regout);
