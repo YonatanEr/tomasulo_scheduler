@@ -21,12 +21,14 @@ void set_up_multiplier_units(Multipliers* multipliers){
 
 
 void print_multipliers(Multipliers* multipliers){
+    printf("\n");
     for (int i=0; i<multipliers->mul_nr_units; i++){
-        printf("busy[%d] = %s\n", i, multipliers->busy[i]?"True":"False");
+        printf("    busy[%d] = %s\n", i, multipliers->busy[i]?"True":"False");
     }
-    printf("mul_nr_units = %d\n", multipliers->mul_nr_units);
-    printf("mul_nr_reservation = %d\n", multipliers->mul_nr_reservation);
-    printf("mul_delay = %d\n", multipliers->mul_delay);
+    printf("    mul_nr_units = %d\n", multipliers->mul_nr_units);
+    printf("    mul_nr_reservation = %d\n", multipliers->mul_nr_reservation);
+    printf("    mul_delay = %d\n", multipliers->mul_delay);
+    printf("\n");
 }
 
 

@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "computational_unit.h": "c",
+        "assert.h": "c",
+        "stdbool.h": "c",
+        "reservation_station.h": "c",
+        "registers_states.h": "c",
+        "instruction_state.h": "c"
+    }
+}
