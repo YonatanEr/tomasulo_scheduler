@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "instruction.h": "c",
+        "registers.h": "c",
+        "substractor.h": "c",
+        "multiplier.h": "c",
+        "stdbool.h": "c",
+        "stdio.h": "c"
+    }
+}
