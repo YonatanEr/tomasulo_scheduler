@@ -10,11 +10,16 @@
 #include "logical_unit.h"
 
 typedef struct CPU {
-    RegState reg_state_arr [REGISTERS_AMOUNT];
-    InstState* inst_state_lst;
-    LogicalUnit logical_unit_arr [LOGICAL_UNIT_TYPES];
     bool halt;
+    int cycle_count;
+    InstState* inst_state_lst;
+    RegState reg_state_arr [REGISTERS_AMOUNT];
+    LogicalUnit logical_unit_arr [LOGICAL_UNIT_TYPES];
 } CPU;
 
+
+CPU init_cpu(char* cfg_file_path);
+void start_cpu(CPU* cpu);
+void free_cpu(CPU* cpu);
 
 #endif
