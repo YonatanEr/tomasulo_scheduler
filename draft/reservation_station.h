@@ -1,4 +1,4 @@
-#ifndef RESERVATION_STATION_h
+#ifndef RESERVATION_STATION_H
 #define RESERVATION_STATION_H
 
 #include "tag.h"

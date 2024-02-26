@@ -18,18 +18,20 @@ typedef struct Inst {
     char src1;
 } Inst;
 
+bool is_halt(int _inst);
+Inst parse_inst(int _inst);
 
 typedef struct InstState {
     Inst inst;
     int pc;
-    Tag res_sta_tag;
     int cycle_issued;
+    Tag res_sta_tag;
     int cycle_execute_start;
     int cycle_execute_end;
     int cycle_write_cdb;
-    struct InstState* next;
 } InstState;
 
-
+InstState* init_instruction_state(int _inst, int pc);
+void free_instruction_state(InstState* inst_state);
 
 #endif
