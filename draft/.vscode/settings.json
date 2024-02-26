@@ -1,10 +1,33 @@
 {
     "files.associations": {
-        "computational_unit.h": "c",
-        "assert.h": "c",
+        "logical_unit.h": "c",
+        "register_state.h": "c",
+        "stdlib.h": "c",
+        "cpu.h": "c",
+        "stdio.h": "c",
         "stdbool.h": "c",
-        "reservation_station.h": "c",
-        "registers_states.h": "c",
-        "instruction_state.h": "c"
+        "string.h": "c",
+        "tag.h": "c",
+        "instruction_state.h": "c",
+        "instruction_state_lst.h": "c",
+        "cstdlib": "c",
+        "sim_args.h": "c",
+        "__bit_reference": "c",
+        "__hash_table": "c",
+        "__mutex_base": "c",
+        "algorithm": "c",
+        "bitset": "c",
+        "charconv": "c",
+        "chrono": "c",
+        "istream": "c",
+        "limits": "c",
+        "locale": "c",
+        "ratio": "c",
+        "streambuf": "c",
+        "string": "c",
+        "string_view": "c",
+        "vector": "c",
+        "complex": "c",
+        "assert.h": "c"
     }
 }
