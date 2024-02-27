@@ -1,5 +1,7 @@
 #include "cpu.h"
+#include <assert.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <math.h>
 #include <assert.h>
@@ -7,8 +9,8 @@
 
 #define MAX_INSTRUCTION_FILE_LINE_LENGTH 16
 #define FETCH_PER_CYCLE 2
-
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
+
 
 void regout(CPU* cpu, char* regout_file_path){
     FILE* fp = fopen(regout_file_path , "w");
@@ -20,21 +22,88 @@ void regout(CPU* cpu, char* regout_file_path){
 }
 
 void fetch(CPU* cpu, FILE* memin_fp){
-    char line [MAX_INSTRUCTION_FILE_LINE_LENGTH];
-    for (char i=0; i<MIN(16 - inst_state_lst_len(cpu->inst_state_lst), FETCH_PER_CYCLE); i++){
+    char* line;
+    char cycle_fetches = MIN(MAX_INSTRUCTION_STATE_LIST_SIZE - inst_state_lst_len(cpu->inst_state_lst), FETCH_PER_CYCLE);
+    while (cycle_fetches--){
+        printf("\n\nCURRENT INSTRUCTION STATE LIST\n");
+        print_inst_state_lst(cpu->inst_state_lst);
+        line = (char*) calloc (MAX_INSTRUCTION_FILE_LINE_LENGTH, sizeof(char));
+        assert(line);
         fgets(line, MAX_INSTRUCTION_FILE_LINE_LENGTH, memin_fp);
         int _inst = strtol(line, NULL, 16);
-        continue;
         if (is_halt(_inst)){
             cpu->halt = true;
             break;
         }
         else{
             InstState* inst_state = init_instruction_state(_inst, cpu->pc++);
-            insert_inst_state(cpu->inst_state_lst, inst_state);
+            insert_inst_state(&(cpu->inst_state_lst), inst_state);
         }
+        free(line);
+        line = NULL;
     }
 }
+
+bool can_be_cleaned(CPU* cpu, InstStateNode* node){
+    return (node->inst_state->cycle_write_cdb) == (cpu->cycle_count);
+}
+
+void clean_head(CPU* cpu){
+    if (cpu->inst_state_lst == NULL){
+        return;
+    }
+    InstStateNode* cur_head;
+    if (can_be_cleaned(cpu, cpu->inst_state_lst))
+    {
+        cur_head = cpu->inst_state_lst;
+        cpu->inst_state_lst = cur_head->next;
+        free_inst_state_node(cur_head);
+    }
+}
+
+void clean_bypass(CPU* cpu){
+    if (cpu->inst_state_lst == NULL || cpu->inst_state_lst->next == NULL || cpu->inst_state_lst->next->next == NULL){
+        return;
+    }
+    InstStateNode* prev_node = cpu->inst_state_lst;
+    InstStateNode* cur_node = prev_node->next;
+    InstStateNode* next_node = cur_node->next;
+    while (next_node != NULL){
+        if (can_be_cleaned(cpu, cur_node)){
+            free_inst_state_node(cur_node);
+            prev_node->next = next_node;
+        }
+        else{
+            prev_node = cur_node;
+        }
+        cur_node = next_node;
+        next_node = next_node->next;
+    }
+}
+
+void clean_tail(CPU* cpu){
+    if (inst_state_lst_len(cpu->inst_state_lst) < 2){
+        return;
+    }
+    InstStateNode* prev_node = cpu->inst_state_lst;
+    InstStateNode* cur_node = prev_node->next;
+    while (cur_node->next != NULL)
+    {
+        prev_node = cur_node;
+        cur_node = cur_node->next;
+    }
+    if (can_be_cleaned(cpu, cur_node)){
+        free_inst_state_node(cur_node);
+        prev_node->next = NULL;
+    }
+}
+
+void clean(CPU* cpu){
+    clean_bypass(cpu);
+    clean_head(cpu);
+    clean_tail(cpu);
+}
+
 
 void start_simulation(CPU* cpu, SimArgs sim_args){
     FILE* memin_fp = fopen(sim_args.memin, "r");
@@ -43,7 +112,7 @@ void start_simulation(CPU* cpu, SimArgs sim_args){
         //ex2cdb;
         //issue2cdb;
         //issue();
-        //clean();
+        clean(cpu);
         if (!cpu->halt){
             fetch(cpu, memin_fp);
         }

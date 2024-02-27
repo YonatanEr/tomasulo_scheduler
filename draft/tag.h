@@ -14,5 +14,6 @@ typedef struct Tag {
 
 
 bool is_equal(Tag t1, Tag t2);
+void print_tag(Tag t1);
 
 #endif
