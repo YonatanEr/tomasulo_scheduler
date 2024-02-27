@@ -1,12 +1,11 @@
 #include "cpu.h"
 #include <assert.h>
-#include <stdlib.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include <string.h>
+#include <stdlib.h>
+#include <stdbool.h>
 
 #define MAX_CFG_FILE_LINE_LENGTH 64
-
 
 bool startswith(char* prefix, char* str){
     int prefix_len=strlen(prefix), str_len=strlen(str);
@@ -21,7 +20,6 @@ bool startswith(char* prefix, char* str){
     return true;
 }
 
-
 int parameter(char* line){
     char* token = NULL;
     token = strtok(line, " ");
@@ -30,77 +28,73 @@ int parameter(char* line){
     return atoi(token);
 }
 
-
-void set_cpu_cfg(CPU* cpu, char* cfg_file_path){
+void read_cpu_cfg(CPU* cpu, char* cfg_file_path){
     FILE* fp = fopen(cfg_file_path, "r");
     assert(fp);
-    char* line = (char*) calloc (1, MAX_CFG_FILE_LINE_LENGTH);
-    assert(line);
+    char line [MAX_CFG_FILE_LINE_LENGTH];
     while (fgets(line, MAX_CFG_FILE_LINE_LENGTH, fp) != NULL){
         if (startswith("add_nr_units", line)){
-            cpu->adders->add_nr_units = parameter(line);
+            cpu->logical_unit_arr[ADD_FU_IDX].nr_fus = parameter(line);
             continue;
         }
         if (startswith("mul_nr_units", line)){
-            cpu->multipliers->mul_nr_units = parameter(line);
+            cpu->logical_unit_arr[MULT_FU_IDX].nr_fus = parameter(line);
             continue;
         }
         if (startswith("div_nr_units", line)){
-            cpu->dividers->div_nr_units = parameter(line);
+            cpu->logical_unit_arr[DIV_FU_IDX].nr_fus = parameter(line);
             continue;
         }
         if (startswith("add_nr_reservation", line)){
-            cpu->adders->add_nr_reservation = parameter(line);
+            cpu->logical_unit_arr[ADD_FU_IDX].nr_res_stas = parameter(line);
             continue;
         }
         if (startswith("mul_nr_reservation", line)){
-            cpu->multipliers->mul_nr_reservation = parameter(line);
+            cpu->logical_unit_arr[MULT_FU_IDX].nr_res_stas = parameter(line);
             continue;
         }
         if (startswith("div_nr_reservation", line)){
-            cpu->dividers->div_nr_reservation = parameter(line);
+            cpu->logical_unit_arr[DIV_FU_IDX].nr_res_stas = parameter(line);
             continue;
         }
         if (startswith("add_delay", line)){
-            cpu->adders->add_delay = parameter(line);
+            cpu->logical_unit_arr[ADD_FU_IDX].fu_delay = parameter(line);
             continue;
         }
         if (startswith("mul_delay", line)){
-            cpu->multipliers->mul_delay = parameter(line);
+            cpu->logical_unit_arr[MULT_FU_IDX].fu_delay = parameter(line);
             continue;
         }
         if (startswith("div_delay", line)){
-            cpu->dividers->div_delay = parameter(line);
+            cpu->logical_unit_arr[DIV_FU_IDX].fu_delay = parameter(line);
             continue;
         }
     }
     fclose(fp);
-    free(line);
-    line = NULL;
-    set_up_adder_units(cpu->adders);
-    set_up_multiplier_units(cpu->multipliers);
-    set_up_divider_units(cpu->dividers);
 }
-
 
 CPU* init_cpu(char* cfg_file_path){
     CPU* cpu = (CPU*) calloc (1, sizeof(CPU));
     assert(cpu);
-    empty_instruction_queue(cpu->instructions_queue);
-    cpu->registers = init_registers();
-    cpu->adders = init_adders();
-    cpu->multipliers = init_multipliers();
-    cpu->dividers = init_dividers();
-    set_cpu_cfg(cpu, cfg_file_path);
+    cpu->halt = false;
+    cpu->cycle_count = 0;
+    cpu->pc = 0;
+    cpu->inst_state_lst = NULL;
+    for (int i=0; i<REGISTERS_AMOUNT; i++){
+        cpu->reg_state_arr[i].v = i;
+    }
+    read_cpu_cfg(cpu, cfg_file_path);
+    for (int i=0; i<LOGICAL_UNIT_TYPES; i++){
+        init_logical_unit(&cpu->logical_unit_arr[i]);
+    }
     return cpu;
 }
 
-
 void free_cpu(CPU* cpu){
-    free_registers(cpu->registers);
-    free_adders(cpu->adders);
-    free_multipliers(cpu->multipliers);
-    free_dividers(cpu->dividers);
+    free_inst_state_lst(cpu->inst_state_lst);
+    for (int i=0; i<LOGICAL_UNIT_TYPES; i++){
+        free_logical_unit(&cpu->logical_unit_arr[i]);
+    }
     free(cpu);
     cpu = NULL;
 }

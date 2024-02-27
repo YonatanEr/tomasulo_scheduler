@@ -1,0 +1,2 @@
+gcc *.c -Wextra -Wall -Wreturn-type -o sol
+./sol example_210124_win/cfg.txt example_210124_win/memin.txt example_210124_win/my_regout.txt example_210124_win/my_traceinst.txt example_210124_win/my_tracecdb.txt
