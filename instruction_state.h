@@ -20,8 +20,8 @@ typedef struct Inst {
 
 bool is_halt(int _inst);
 Inst parse_inst(int _inst);
+int opcode2type(Inst inst);
 void print_inst(Inst inst);
-
 
 typedef struct InstState {
     Inst inst;
@@ -35,6 +35,7 @@ typedef struct InstState {
 
 InstState* init_instruction_state(int _inst, int pc);
 void free_instruction_state(InstState* inst_state);
+bool is_issued(InstState* inst_state);
 void print_inst_state(InstState* inst_state);
 
 #endif

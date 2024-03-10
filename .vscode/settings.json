@@ -3,6 +3,12 @@
         "reservation_station.h": "c",
         "stdbool.h": "c",
         "tag.h": "c",
-        "logical_unit.h": "c"
+        "logical_unit.h": "c",
+        "ios": "c",
+        "instruction_state.h": "c",
+        "stdlib.h": "c",
+        "assert.h": "c",
+        "stdio.h": "c",
+        "sim_args.h": "c"
     }
 }

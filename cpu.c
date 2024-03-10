@@ -76,6 +76,7 @@ void read_cpu_cfg(CPU* cpu, char* cfg_file_path){
 CPU* init_cpu(char* cfg_file_path){
     CPU* cpu = (CPU*) calloc (1, sizeof(CPU));
     assert(cpu);
+    read_cpu_cfg(cpu, cfg_file_path);
     cpu->halt = false;
     cpu->cycle_count = 0;
     cpu->pc = 0;
@@ -84,7 +85,6 @@ CPU* init_cpu(char* cfg_file_path){
         cpu->reg_state_arr[i].v = i;
         cpu->reg_state_arr[i].q = get_tag(NOT_INITIALZIED, NOT_INITIALZIED);
     }
-    read_cpu_cfg(cpu, cfg_file_path);
     for (int type=0; type<LOGICAL_UNIT_TYPES; type++){
         init_logical_unit(&cpu->logical_unit_arr[type], type);
     }

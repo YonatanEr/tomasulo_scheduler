@@ -2,6 +2,7 @@
 #define LOGICAL_UNIT_H
 
 #include "reservation_station.h"
+#include "instruction_state.h"
 #include <stdbool.h>
 
 
@@ -16,6 +17,7 @@ typedef struct LogicalUnit {
 
 
 void init_logical_unit(LogicalUnit* logical_unit, int type);
+int get_available_res_sta_idx(LogicalUnit* logical_unit);
 void free_logical_unit(LogicalUnit* logical_unit);
 
 #endif
