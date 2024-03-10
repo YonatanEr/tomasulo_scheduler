@@ -15,5 +15,6 @@ typedef struct Tag {
 
 Tag get_tag(char type, int res_sta_idx);
 void print_tag(Tag tag);
+bool tags_equal( Tag t1, Tag t2);
 
 #endif
