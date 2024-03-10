@@ -10,6 +10,6 @@ Tag get_tag(char type, int res_sta_idx){
 }
 
 void print_tag(Tag t1){
-    printf("type = %d\n", t1.type);
-    printf("res_sta_idx = %d\n", t1.res_sta_idx);
+    printf("type = %d   ", t1.type);
+    printf("res_sta_idx = %d   ", t1.res_sta_idx);
 }

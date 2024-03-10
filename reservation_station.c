@@ -3,7 +3,7 @@
 #include <assert.h>
 
 
-ResSta get_reservation_stations(int type, int index){
+ResSta init_reservation_stations(int type, int index){
     ResSta res_sta;
     res_sta.tag = get_tag(type, index);
     res_sta.busy = false;

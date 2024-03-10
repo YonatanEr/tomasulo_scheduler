@@ -26,7 +26,7 @@ InstStateNode* inst_state_lst_end(InstStateNode* inst_state_node){
 }
 
 void insert_inst_state(InstStateNode** inst_state_node, int _inst, int pc){
-    InstStateNode* new_inst_state_node = (InstStateNode*) malloc (1 * sizeof(InstStateNode));
+    InstStateNode* new_inst_state_node = (InstStateNode*) calloc (1, sizeof(InstStateNode));
     assert(new_inst_state_node);
     new_inst_state_node->inst_state = init_instruction_state(_inst, pc);
     new_inst_state_node->next = NULL;
@@ -34,8 +34,7 @@ void insert_inst_state(InstStateNode** inst_state_node, int _inst, int pc){
         *inst_state_node = new_inst_state_node;
         return;
     }
-    InstStateNode* lst_end = inst_state_lst_end(*inst_state_node);
-    lst_end->next = new_inst_state_node;
+    inst_state_lst_end(*inst_state_node)->next = new_inst_state_node;
 }
 
 void print_inst_state_lst(InstStateNode* inst_state_node){
