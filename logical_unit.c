@@ -9,7 +9,7 @@ void init_logical_unit(LogicalUnit* logical_unit, int type){
     ResSta* res_sta_arr = (ResSta*) calloc (logical_unit->nr_res_stas, sizeof(ResSta));
     assert(res_sta_arr);
     for (int index=0; index<logical_unit->nr_res_stas; index++){
-        res_sta_arr[index] = get_reservation_stations(index, type);
+        res_sta_arr[index] = get_reservation_stations(type, index);
     }
 }
 

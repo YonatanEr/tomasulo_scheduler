@@ -1,10 +1,8 @@
 {
     "files.associations": {
-        "instruction.h": "c",
-        "registers.h": "c",
-        "substractor.h": "c",
-        "multiplier.h": "c",
+        "reservation_station.h": "c",
         "stdbool.h": "c",
-        "stdio.h": "c"
+        "tag.h": "c",
+        "logical_unit.h": "c"
     }
 }

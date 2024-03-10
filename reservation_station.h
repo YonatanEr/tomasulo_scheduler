@@ -12,6 +12,7 @@ typedef struct ResSta {
     Tag qj, qk;
 } ResSta;
 
-ResSta get_reservation_stations(int index, int type);
+ResSta get_reservation_stations(int type, int index);
+void empty_reservation_stations(ResSta* res_sta);
 
 #endif

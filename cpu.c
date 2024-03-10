@@ -82,6 +82,7 @@ CPU* init_cpu(char* cfg_file_path){
     cpu->inst_state_lst = NULL;
     for (int i=0; i<REGISTERS_AMOUNT; i++){
         cpu->reg_state_arr[i].v = i;
+        cpu->reg_state_arr[i].q = get_tag(NOT_INITIALZIED, NOT_INITIALZIED);
     }
     read_cpu_cfg(cpu, cfg_file_path);
     for (int type=0; type<LOGICAL_UNIT_TYPES; type++){
