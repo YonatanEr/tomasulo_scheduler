@@ -31,21 +31,20 @@ void fetch(CPU* cpu, FILE* memin_fp){
         assert(line);
         fgets(line, MAX_INSTRUCTION_FILE_LINE_LENGTH, memin_fp);
         int _inst = strtol(line, NULL, 16);
+        free(line);
+        line = NULL;
         if (is_halt(_inst)){
             cpu->halt = true;
             break;
         }
         else{
-            InstState* inst_state = init_instruction_state(_inst, cpu->pc++);
-            insert_inst_state(&(cpu->inst_state_lst), inst_state);
+            insert_inst_state(&(cpu->inst_state_lst), _inst, cpu->pc++);
         }
-        free(line);
-        line = NULL;
     }
 }
 
 bool can_be_cleaned(CPU* cpu, InstStateNode* node){
-    return (node->inst_state->cycle_write_cdb) == (cpu->cycle_count);
+    return (node->inst_state->cycle_write_cdb != NOT_INITIALZIED) && (node->inst_state->cycle_write_cdb < cpu->cycle_count);
 }
 
 void clean_head(CPU* cpu){

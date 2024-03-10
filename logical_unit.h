@@ -15,8 +15,7 @@ typedef struct LogicalUnit {
 } LogicalUnit;
 
 
-void init_logical_unit(LogicalUnit* logical_unit);
-
+void init_logical_unit(LogicalUnit* logical_unit, int type);
 void free_logical_unit(LogicalUnit* logical_unit);
 
 #endif

@@ -25,10 +25,10 @@ InstStateNode* inst_state_lst_end(InstStateNode* inst_state_node){
     return (inst_state_node->next==NULL)?inst_state_node:inst_state_lst_end(inst_state_node->next);
 }
 
-void insert_inst_state(InstStateNode** inst_state_node, InstState* inst_state){
+void insert_inst_state(InstStateNode** inst_state_node, int _inst, int pc){
     InstStateNode* new_inst_state_node = (InstStateNode*) malloc (1 * sizeof(InstStateNode));
     assert(new_inst_state_node);
-    new_inst_state_node->inst_state = inst_state;
+    new_inst_state_node->inst_state = init_instruction_state(_inst, pc);
     new_inst_state_node->next = NULL;
     if (*inst_state_node == NULL){
         *inst_state_node = new_inst_state_node;

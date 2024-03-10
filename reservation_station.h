@@ -12,5 +12,6 @@ typedef struct ResSta {
     Tag qj, qk;
 } ResSta;
 
+ResSta get_reservation_stations(int index, int type);
 
 #endif

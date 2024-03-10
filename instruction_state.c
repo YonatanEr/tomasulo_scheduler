@@ -46,12 +46,12 @@ InstState* init_instruction_state(int _inst, int pc){
     assert(inst_state);
     inst_state->inst = parse_inst(_inst);
     inst_state->pc = pc;
-    inst_state->cycle_issued = -1;
-    inst_state->res_sta_tag.type = -1;
-    inst_state->res_sta_tag.res_sta_idx = -1;
-    inst_state->cycle_execute_start = -1;
-    inst_state->cycle_execute_end = -1;
-    inst_state->cycle_write_cdb = -1;
+    inst_state->cycle_issued = NOT_INITIALZIED;
+    inst_state->res_sta_tag.type = NOT_INITIALZIED;
+    inst_state->res_sta_tag.res_sta_idx = NOT_INITIALZIED;
+    inst_state->cycle_execute_start = NOT_INITIALZIED;
+    inst_state->cycle_execute_end = NOT_INITIALZIED;
+    inst_state->cycle_write_cdb = NOT_INITIALZIED;
     return inst_state;
 }
 

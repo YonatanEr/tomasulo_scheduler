@@ -1,8 +1,12 @@
 #include "tag.h"
 #include "stdio.h"
 
-bool is_equal(Tag t1, Tag t2){
-    return (t1.type==t2.type) && (t1.res_sta_idx==t2.res_sta_idx);
+
+Tag get_tag(char type, int res_sta_idx){
+    Tag tag;
+    tag.type = type;
+    tag.res_sta_idx = res_sta_idx;
+    return tag;
 }
 
 void print_tag(Tag t1){

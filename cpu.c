@@ -84,8 +84,8 @@ CPU* init_cpu(char* cfg_file_path){
         cpu->reg_state_arr[i].v = i;
     }
     read_cpu_cfg(cpu, cfg_file_path);
-    for (int i=0; i<LOGICAL_UNIT_TYPES; i++){
-        init_logical_unit(&cpu->logical_unit_arr[i]);
+    for (int type=0; type<LOGICAL_UNIT_TYPES; type++){
+        init_logical_unit(&cpu->logical_unit_arr[type], type);
     }
     return cpu;
 }
@@ -98,3 +98,4 @@ void free_cpu(CPU* cpu){
     free(cpu);
     cpu = NULL;
 }
+
