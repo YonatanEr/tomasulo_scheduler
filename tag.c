@@ -13,3 +13,7 @@ void print_tag(Tag t1){
     printf("type = %d   ", t1.type);
     printf("res_sta_idx = %d   ", t1.res_sta_idx);
 }
+
+bool is_equal_tag(Tag t1, Tag t2){
+    return t1.res_sta_idx==t2.res_sta_idx && t1.type==t2.type;
+}

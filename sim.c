@@ -192,7 +192,7 @@ void write_cdb_update_register_array ( CPU* cpu_ptr, InstStateNode* curr_node, f
     int dst_reg;
     dst_reg = curr_node->inst_state->inst.dst; // converts char to int
 
-    if ( are_input_tags_equal ( curr_node->inst_state->res_sta_tag, cpu_ptr->reg_state_arr[dst_reg].q ) )
+    if ( is_equal_tag ( curr_node->inst_state->res_sta_tag, cpu_ptr->reg_state_arr[dst_reg].q ) )
     {
         cpu_ptr->reg_state_arr[dst_reg].q = get_tag(NOT_INITIALZIED, NOT_INITIALZIED);
         cpu_ptr->reg_state_arr[dst_reg].v = exec_val;
@@ -217,13 +217,13 @@ void write_cdb_update_rs_qjk_when_needed ( CPU* cpu_ptr, InstStateNode* curr_nod
                 continue; 
 
             // updating vj if needed 
-            if ( are_input_tags_equal ( res_sta_arr[res_sta_idx].qj, curr_node->inst_state->res_sta_tag ) )
+            if ( is_equal_tag ( res_sta_arr[res_sta_idx].qj, curr_node->inst_state->res_sta_tag ) )
             {
                 res_sta_arr[res_sta_idx].vj = exec_val;
                 res_sta_arr[res_sta_idx].qj = get_tag(NOT_INITIALZIED, NOT_INITIALZIED);
             }
             // updating vk if needed
-            if ( are_input_tags_equal ( res_sta_arr[res_sta_idx].qk, curr_node->inst_state->res_sta_tag ) )
+            if ( is_equal_tag ( res_sta_arr[res_sta_idx].qk, curr_node->inst_state->res_sta_tag ) )
             {
                 res_sta_arr[res_sta_idx].vk = exec_val;
                 res_sta_arr[res_sta_idx].qk = get_tag(NOT_INITIALZIED, NOT_INITIALZIED);
