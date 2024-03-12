@@ -46,14 +46,13 @@ void issue(CPU* cpu){
     int current_cycle_issues_counter = 0;
     InstStateNode* inst_state_node = cpu->inst_state_lst;
     while (inst_state_node!=NULL && current_cycle_issues_counter<ISSUES_PER_CYCLE){
-        LogicalUnit logical_unit = cpu->logical_unit_arr[opcode2type(inst_state_node->inst_state->inst)];
-        if (is_issued(inst_state_node->inst_state) || logical_unit.nr_avail_res_stas==0){
+        LogicalUnit* logical_unit = cpu->logical_unit_arr[opcode2type(inst_state_node->inst_state->inst)];
+        if (is_issued(inst_state_node->inst_state) || logical_unit->nr_avail_res_stas==0){
             inst_state_node = inst_state_node->next;
             continue;
         }
-
         // looking for an available rs
-        ResSta res_sta = logical_unit.res_sta_arr[get_available_res_sta_idx(&logical_unit)];
+        ResSta res_sta = logical_unit->res_sta_arr[get_available_res_sta_idx(logical_unit)];
 
         // inst. state update 
         issue_inst_state_update(cpu, inst_state_node->inst_state, &res_sta);
@@ -65,7 +64,7 @@ void issue(CPU* cpu){
         issue_reg_state_update(cpu, inst_state_node->inst_state, &res_sta);
 
         // logical unit update 
-        logical_unit.nr_avail_res_stas--;
+        logical_unit->nr_avail_res_stas--;
 
         current_cycle_issues_counter++;
         inst_state_node = inst_state_node->next;
@@ -157,14 +156,13 @@ void fetch(CPU* cpu, FILE* memin_fp){
 float calc_exec_value( CPU* cpu_ptr, InstStateNode* curr_node, int curr_logical_unit_type, int curr_res_sta_idx )
 // Assumption: curr_node != NULL
 {
-    int curr_logical_unit_type, curr_res_sta_idx;
     float vj, vk, exec_val;
 
     if ( curr_node == NULL )
         assert(NULL);
 
-    vj = cpu_ptr->logical_unit_arr[curr_logical_unit_type].res_sta_arr[curr_res_sta_idx].vj;
-    vk = cpu_ptr->logical_unit_arr[curr_logical_unit_type].res_sta_arr[curr_res_sta_idx].vk;
+    vj = cpu_ptr->logical_unit_arr[curr_logical_unit_type]->res_sta_arr[curr_res_sta_idx].vj;
+    vk = cpu_ptr->logical_unit_arr[curr_logical_unit_type]->res_sta_arr[curr_res_sta_idx].vk;
 
     switch (curr_node->inst_state->inst.opcode)
     {
@@ -207,8 +205,8 @@ void write_cdb_update_rs_qjk_when_needed ( CPU* cpu_ptr, InstStateNode* curr_nod
 
     for ( logical_unit_type_idx = 0; logical_unit_type_idx < LOGICAL_UNIT_TYPES; logical_unit_type_idx++ )
     {
-        nr_res_stas = cpu_ptr->logical_unit_arr[curr_logical_unit_type].nr_res_stas;
-        res_sta_arr = cpu_ptr->logical_unit_arr[curr_logical_unit_type].res_sta_arr;
+        nr_res_stas = cpu_ptr->logical_unit_arr[curr_logical_unit_type]->nr_res_stas;
+        res_sta_arr = cpu_ptr->logical_unit_arr[curr_logical_unit_type]->res_sta_arr;
         
         for ( res_sta_idx = 0; res_sta_idx < nr_res_stas; res_sta_idx++ )
         {
@@ -237,13 +235,13 @@ void write_cdb_update_rs_qjk_when_needed ( CPU* cpu_ptr, InstStateNode* curr_nod
 void write_cdb_delete_rs_of_curr_int ( CPU* cpu_ptr, int curr_logical_unit_type, int curr_res_sta_idx )
 {
     // logical unit update
-    cpu_ptr->logical_unit_arr[curr_logical_unit_type].nr_avail_res_stas++;
+    cpu_ptr->logical_unit_arr[curr_logical_unit_type]->nr_avail_res_stas++;
 
     // current res sta update:
     // Qj, qk must have been initialized, o.w we wouldn't have executed
     // Tag - A const. value from initialization
     // Vj, Vk - Would be overriden in the next res sta usage 
-    cpu_ptr->logical_unit_arr[curr_logical_unit_type].res_sta_arr[curr_res_sta_idx].busy = false;
+    cpu_ptr->logical_unit_arr[curr_logical_unit_type]->res_sta_arr[curr_res_sta_idx].busy = false;
 }
 
 void write_cdb_update_curr_inst_state ( CPU* cpu_ptr, InstStateNode* curr_node )
@@ -310,14 +308,14 @@ void issue_to_execute( CPU* cpu_ptr )
             curr_logical_unit_type = curr_node->inst_state->res_sta_tag.type; 
             curr_res_sta_idx = curr_node->inst_state->res_sta_tag.res_sta_idx; 
 
-            if (    cpu_ptr->logical_unit_arr[curr_logical_unit_type].nr_avail_fus > 0  && 
-                    cpu_ptr->logical_unit_arr[curr_logical_unit_type].res_sta_arr[curr_res_sta_idx].qj.type == NOT_INITIALZIED && 
-                    cpu_ptr->logical_unit_arr[curr_logical_unit_type].res_sta_arr[curr_res_sta_idx].qk.type == NOT_INITIALZIED )
+            if (    cpu_ptr->logical_unit_arr[curr_logical_unit_type]->nr_avail_fus > 0  && 
+                    cpu_ptr->logical_unit_arr[curr_logical_unit_type]->res_sta_arr[curr_res_sta_idx].qj.type == NOT_INITIALZIED && 
+                    cpu_ptr->logical_unit_arr[curr_logical_unit_type]->res_sta_arr[curr_res_sta_idx].qk.type == NOT_INITIALZIED )
             {
 
                 curr_node->inst_state->cycle_execute_start = cpu_ptr->cycle_count;
-                curr_node->inst_state->cycle_execute_end = cpu_ptr->cycle_count + cpu_ptr->logical_unit_arr[curr_logical_unit_type].fu_delay -1;
-                cpu_ptr->logical_unit_arr[curr_logical_unit_type].nr_avail_fus--;
+                curr_node->inst_state->cycle_execute_end = cpu_ptr->cycle_count + cpu_ptr->logical_unit_arr[curr_logical_unit_type]->fu_delay -1;
+                cpu_ptr->logical_unit_arr[curr_logical_unit_type]->nr_avail_fus--;
             }
         }
 
@@ -343,8 +341,8 @@ void simulate(CPU* cpu, SimArgs sim_args){
         printf("CURRENT INSTRUCTION STATE LIST\n");
         print_inst_state_lst(cpu->inst_state_lst);
         clean(cpu);
-        execute_to_write_cdb(cpu);
-        issue_to_execute(cpu);
+        //execute_to_write_cdb(cpu);
+        //issue_to_execute(cpu);
         issue(cpu);
         if (!cpu->halt){
             fetch(cpu, memin_fp);
