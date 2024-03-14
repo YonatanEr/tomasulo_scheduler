@@ -28,7 +28,8 @@ int parameter(char* line){
     return atoi(token);
 }
 
-void read_cpu_cfg(CPU* cpu, char* cfg_file_path){
+void read_cpu_cfg(CPU** cpu_ptr, char* cfg_file_path){
+    CPU* cpu = *cpu_ptr;
     FILE* fp = fopen(cfg_file_path, "r");
     assert(fp);
     char line [MAX_CFG_FILE_LINE_LENGTH];
@@ -76,7 +77,6 @@ void read_cpu_cfg(CPU* cpu, char* cfg_file_path){
 CPU* init_cpu(char* cfg_file_path){
     CPU* cpu = (CPU*) calloc (1, sizeof(CPU));
     assert(cpu);
-    read_cpu_cfg(cpu, cfg_file_path);
     cpu->halt = false;
     cpu->cycle_count = 0;
     cpu->pc = 0;
@@ -86,13 +86,13 @@ CPU* init_cpu(char* cfg_file_path){
         cpu->reg_state_arr[i].q = get_tag(NOT_INITIALZIED, NOT_INITIALZIED);
     }
     for (int type=0; type<LOGICAL_UNIT_TYPES; type++){
+        cpu->logical_unit_arr[type] = (LogicalUnit*) calloc (1, sizeof(LogicalUnit));
+        assert(cpu->logical_unit_arr[type]);
+    }
+    read_cpu_cfg(&cpu, cfg_file_path);
+    for (int type=0; type<LOGICAL_UNIT_TYPES; type++){
         LogicalUnit* logical_unit = cpu->logical_unit_arr[type];
         init_logical_unit(&logical_unit, type);
-        printf("logical_unit.nr_res_stas = %d\n", logical_unit->nr_res_stas);
-        for (int index=0; index < logical_unit->nr_res_stas; index++){
-            printf("res_sta_arr[index].busy = %d\n", logical_unit->res_sta_arr[index].busy);
-    }
-
     }
     return cpu;
 }
@@ -106,4 +106,3 @@ void free_cpu(CPU* cpu){
     free(cpu);
     cpu = NULL;
 }
-

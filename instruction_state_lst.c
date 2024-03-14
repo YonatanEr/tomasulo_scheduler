@@ -38,9 +38,9 @@ void insert_inst_state(InstStateNode** inst_state_node, int _inst, int pc){
 }
 
 void print_inst_state_lst(InstStateNode* inst_state_node){
-    printf("---------------------------------\n");
     if (inst_state_node != NULL){
         print_inst_state(inst_state_node->inst_state);
+        printf("-----------------------------------------------------------------------------------------------------------------------------------------------\n");
         print_inst_state_lst(inst_state_node->next);
     }
 }

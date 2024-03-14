@@ -54,7 +54,7 @@ void print_inst(Inst inst){
         assert(NULL);
         break;
     }
-    printf("F[%d]=F[%d]%cF[%d]\n", inst.dst, inst.src0, operation, inst.src1);
+    printf("F[%d]=F[%d]%cF[%d]   ", inst.dst, inst.src0, operation, inst.src1);
 }
 
 

@@ -43,9 +43,11 @@ void issue_inst_state_update(CPU* cpu, InstState* inst_state, ResSta* res_sta){
 }
 
 void issue(CPU* cpu){
+    printf("issue\n");
     int current_cycle_issues_counter = 0;
     InstStateNode* inst_state_node = cpu->inst_state_lst;
     while (inst_state_node!=NULL && current_cycle_issues_counter<ISSUES_PER_CYCLE){
+        printf("while\n");
         LogicalUnit* logical_unit = cpu->logical_unit_arr[opcode2type(inst_state_node->inst_state->inst)];
         if (is_issued(inst_state_node->inst_state) || logical_unit->nr_avail_res_stas==0){
             inst_state_node = inst_state_node->next;
@@ -58,7 +60,9 @@ void issue(CPU* cpu){
         issue_inst_state_update(cpu, inst_state_node->inst_state, &res_sta);
 
         // rs. update regs update 
+        printf("res_sta.busy = %d\n", res_sta.busy);
         issue_res_sta_update(cpu, inst_state_node->inst_state, &res_sta);
+        printf("res_sta.busy = %d\n", res_sta.busy);
 
         // registers state update   must come after rs update
         issue_reg_state_update(cpu, inst_state_node->inst_state, &res_sta);
@@ -332,14 +336,32 @@ void regout(CPU* cpu, char* regout_file_path){
     fclose(fp);
 }
 
+void print_reservation_stations_status(CPU* cpu){
+    for (int type=0; type<LOGICAL_UNIT_TYPES; type++){
+        if (type==0){printf("ADD:\n");}
+        if (type==1){printf("MUL:\n");}
+        if (type==2){printf("DIV:\n");}        
+        LogicalUnit* logical_unit = cpu->logical_unit_arr[type];
+        for (int i=0; i<logical_unit->nr_res_stas; i++){
+            print_reservatio_station(logical_unit->res_sta_arr[i]);
+            printf("\n");
+            printf("-----------------------------------------------------------------------------------------------------------------------------------------------\n");
+        }
+        printf("\n");
+    }
+}
+
 void simulate(CPU* cpu, SimArgs sim_args){
     FILE* memin_fp = fopen(sim_args.memin, "r");
     do
     {
-        printf("\n\n");
+        printf("\n\n\n\n");
         printf("CYCLE #%d\n", cpu->cycle_count);
-        printf("CURRENT INSTRUCTION STATE LIST\n");
+        printf("\nCURRENT INSTRUCTION STATE LIST\n");
         print_inst_state_lst(cpu->inst_state_lst);
+        printf("\nCURRENT RESERVATION STATIONS STATUS\n");
+        print_reservation_stations_status(cpu);
+
         clean(cpu);
         //execute_to_write_cdb(cpu);
         //issue_to_execute(cpu);

@@ -8,10 +8,12 @@ void init_logical_unit(LogicalUnit** logical_unit_ptr, int type){
     LogicalUnit* logical_unit = *logical_unit_ptr;
     logical_unit->nr_avail_fus = logical_unit->nr_fus;
     logical_unit->nr_avail_res_stas = logical_unit->nr_res_stas;
-    ResSta* res_sta_arr = (ResSta*) calloc (logical_unit->nr_res_stas, sizeof(ResSta));
-    assert(res_sta_arr);
+    logical_unit->res_sta_arr = (ResSta*) calloc (logical_unit->nr_res_stas, sizeof(ResSta));
+    assert(logical_unit->res_sta_arr);
     for (int index=0; index<logical_unit->nr_res_stas; index++){
-        res_sta_arr[index] = init_reservation_stations(type, index);
+        printf("index = %d\n", index);
+        set_reservation_stations(&(logical_unit->res_sta_arr[index]), type, index);
+        printf("res_sta_arr[index].busy = %d\n", logical_unit->res_sta_arr[index].busy);
     }
 }
 
