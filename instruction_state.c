@@ -54,7 +54,7 @@ void print_inst(Inst inst){
         assert(NULL);
         break;
     }
-    printf("F[%d]=F[%d]%cF[%d]   ", inst.dst, inst.src0, operation, inst.src1);
+    printf("F[%2d]=F[%2d]%cF[%2d]   ", inst.dst, inst.src0, operation, inst.src1);
 }
 
 
@@ -82,11 +82,11 @@ bool is_issued(InstState* inst_state){
 
 void print_inst_state(InstState* inst_state){
     print_inst(inst_state->inst);
-    printf("pc=%d   ", inst_state->pc);
-    printf("cycle_issued=%d   ", inst_state->cycle_issued);
+    printf("pc = %2d   ", inst_state->pc);
+    printf("cycle_issued = %2d   ", inst_state->cycle_issued);
     print_tag(inst_state->res_sta_tag);
-    printf("cycle_execute_start=%d   ", inst_state->cycle_execute_start);
-    printf("cycle_execute_end=%d   ", inst_state->cycle_execute_end);
-    printf("cycle_write_cdb=%d   ", inst_state->cycle_write_cdb);
+    printf("cycle_execute_start = %2d   ", inst_state->cycle_execute_start);
+    printf("cycle_execute_end = %2d   ", inst_state->cycle_execute_end);
+    printf("cycle_write_cdb= %2d   ", inst_state->cycle_write_cdb);
     printf("\n");
 }

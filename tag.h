@@ -9,11 +9,11 @@
 #include <stdbool.h>
 
 typedef struct Tag {
-    char type;
-    char res_sta_idx;
+    int type;
+    int res_sta_idx;
 } Tag;
 
-Tag get_tag(char type, int res_sta_idx);
+Tag get_tag(int type, int res_sta_idx);
 void print_tag(Tag tag);
 bool is_equal_tag(Tag t1, Tag t2);
 
