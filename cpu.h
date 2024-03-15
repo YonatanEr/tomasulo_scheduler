@@ -11,7 +11,7 @@
 
 typedef struct CPU {
     bool halt;
-    int cycle_count;
+    int cycle;
     int pc;
     InstStateNode* inst_state_lst;
     RegState reg_state_arr [REGISTERS_AMOUNT];

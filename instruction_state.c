@@ -58,7 +58,7 @@ void print_inst(Inst inst){
 }
 
 
-InstState* init_instruction_state(int _inst, int pc){
+InstState* init_instruction_state(int _inst, int pc, int cycle_fetched){
     InstState* inst_state = (InstState*) malloc (1 * sizeof(InstState));
     assert(inst_state);
     inst_state->inst = parse_inst(_inst);
@@ -68,6 +68,7 @@ InstState* init_instruction_state(int _inst, int pc){
     inst_state->cycle_execute_start = NOT_INITIALZIED;
     inst_state->cycle_execute_end = NOT_INITIALZIED;
     inst_state->cycle_write_cdb = NOT_INITIALZIED;
+    inst_state->cycle_fetched = cycle_fetched;
     return inst_state;
 }
 
@@ -88,5 +89,6 @@ void print_inst_state(InstState* inst_state){
     printf("cycle_execute_start = %2d   ", inst_state->cycle_execute_start);
     printf("cycle_execute_end = %2d   ", inst_state->cycle_execute_end);
     printf("cycle_write_cdb= %2d   ", inst_state->cycle_write_cdb);
+    printf("cycle_fetched= %2d   ", inst_state->cycle_fetched);
     printf("\n");
 }

@@ -78,7 +78,7 @@ CPU* init_cpu(char* cfg_file_path){
     CPU* cpu = (CPU*) calloc (1, sizeof(CPU));
     assert(cpu);
     cpu->halt = false;
-    cpu->cycle_count = 0;
+    cpu->cycle = 0;
     cpu->pc = 0;
     cpu->inst_state_lst = NULL;
     for (int i=0; i<REGISTERS_AMOUNT; i++){

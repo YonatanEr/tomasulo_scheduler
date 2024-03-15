@@ -41,7 +41,7 @@ void print_logical_units_status(LogicalUnit* logical_unit_arr [LOGICAL_UNIT_TYPE
 
 void print_status(CPU* cpu){
     printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-    printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CYCLE #%d ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n", cpu->cycle_count);
+    printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CYCLE #%d ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n", cpu->cycle);
     print_instructions_state_status(cpu->inst_state_lst);
     print_registers_status(cpu->reg_state_arr);
     print_logical_units_status(cpu->logical_unit_arr);
@@ -72,7 +72,7 @@ void issue_res_sta_update(CPU* cpu, InstState* inst_state, ResSta* res_sta){
 
 
 void issue_inst_state_update(CPU* cpu, InstState* inst_state, ResSta* res_sta){
-    inst_state->cycle_issued = cpu->cycle_count;
+    inst_state->cycle_issued = cpu->cycle;
     inst_state->res_sta_tag = res_sta->tag;
 }
 
@@ -85,30 +85,19 @@ void issue(CPU* cpu){
             inst_state_node = inst_state_node->next;
             continue;
         }
-        // looking for an available rs
         ResSta* res_sta = &(logical_unit->res_sta_arr[get_available_res_sta_idx(logical_unit)]);
-
-        // inst. state update 
         issue_inst_state_update(cpu, inst_state_node->inst_state, res_sta);
-
-        // rs. update regs update 
         issue_res_sta_update(cpu, inst_state_node->inst_state, res_sta);
-
-        // registers state update   must come after rs update
         issue_reg_state_update(cpu, inst_state_node->inst_state, res_sta);
-
-        // logical unit update 
         logical_unit->nr_avail_res_stas--;
-
         current_cycle_issues_counter++;
         inst_state_node = inst_state_node->next;
-        
     }
     // update trace file
 }
 
 bool can_be_cleaned(CPU* cpu, InstStateNode* node){
-    return (node->inst_state->cycle_write_cdb != NOT_INITIALZIED) && (node->inst_state->cycle_write_cdb < cpu->cycle_count);
+    return (node->inst_state->cycle_write_cdb != NOT_INITIALZIED) && (node->inst_state->cycle_write_cdb < cpu->cycle);
 }
 
 void clean_head(CPU* cpu){
@@ -182,7 +171,7 @@ void fetch(CPU* cpu, FILE* memin_fp){
             break;
         }
         else{
-            insert_inst_state(&(cpu->inst_state_lst), _inst, cpu->pc++);
+            insert_inst_state(&(cpu->inst_state_lst), _inst, cpu->pc++, cpu->cycle);
         }
     }
     // for each instruction, add cycle fetched
@@ -281,7 +270,7 @@ void write_cdb_delete_rs_of_curr_int ( CPU* cpu_ptr, int curr_logical_unit_type,
 
 void write_cdb_update_curr_inst_state ( CPU* cpu_ptr, InstStateNode* curr_node )
 {
-    curr_node->inst_state->cycle_write_cdb = cpu_ptr->cycle_count;
+    curr_node->inst_state->cycle_write_cdb = cpu_ptr->cycle;
     curr_node->inst_state->res_sta_tag = get_tag(NOT_INITIALZIED, NOT_INITIALZIED);
 }
 
@@ -299,7 +288,7 @@ void execute_to_write_cdb ( CPU* cpu_ptr )
 
     while ( curr_node != NULL )
     {
-        if ( curr_node->inst_state->cycle_execute_end != NOT_INITIALZIED && cpu_ptr->cycle_count >= curr_node->inst_state->cycle_execute_end + 1 ) 
+        if ( curr_node->inst_state->cycle_execute_end != NOT_INITIALZIED && cpu_ptr->cycle >= curr_node->inst_state->cycle_execute_end + 1 ) 
         { // for all inst. which finished their execution, i.e. curr_cycle >= ex_end_cycle + 1
 
             curr_logical_unit_type = curr_node->inst_state->res_sta_tag.type;
@@ -349,8 +338,8 @@ void issue_to_execute( CPU* cpu_ptr )
                     cpu_ptr->logical_unit_arr[curr_logical_unit_type]->res_sta_arr[curr_res_sta_idx].qk.type == NOT_INITIALZIED )
             {
 
-                curr_node->inst_state->cycle_execute_start = cpu_ptr->cycle_count;
-                curr_node->inst_state->cycle_execute_end = cpu_ptr->cycle_count + cpu_ptr->logical_unit_arr[curr_logical_unit_type]->fu_delay -1;
+                curr_node->inst_state->cycle_execute_start = cpu_ptr->cycle;
+                curr_node->inst_state->cycle_execute_end = cpu_ptr->cycle + cpu_ptr->logical_unit_arr[curr_logical_unit_type]->fu_delay -1;
                 cpu_ptr->logical_unit_arr[curr_logical_unit_type]->nr_avail_fus--;
             }
         }
@@ -371,7 +360,7 @@ void simulate(CPU* cpu, SimArgs sim_args){
         if (!cpu->halt){
             fetch(cpu, memin_fp);
         }
-        cpu->cycle_count++;
+        cpu->cycle++;
     } while (cpu->inst_state_lst);
     fclose(memin_fp);
 }

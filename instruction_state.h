@@ -31,9 +31,10 @@ typedef struct InstState {
     int cycle_execute_start;
     int cycle_execute_end;
     int cycle_write_cdb;
+    int cycle_fetched;
 } InstState;
 
-InstState* init_instruction_state(int _inst, int pc);
+InstState* init_instruction_state(int _inst, int pc, int cycle_fetched);
 void free_instruction_state(InstState* inst_state);
 bool is_issued(InstState* inst_state);
 void print_inst_state(InstState* inst_state);
