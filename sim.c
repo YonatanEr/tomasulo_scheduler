@@ -251,39 +251,52 @@ void write_cdb_update_register_array ( CPU* cpu_ptr )
 
 }
 
+
 // Assumption: curr_node != NULL
-void write_cdb_update_rs_qjk_when_needed ( CPU* cpu_ptr, InstStateNode* curr_node, int curr_logical_unit_type, int curr_res_sta_idx, float exec_val )
+void write_cdb_update_rs_qjk_when_needed ( CPU* cpu_ptr, CdbState* curr_cdb_state )
 {
     int nr_res_stas, logical_unit_type_idx, res_sta_idx; 
     ResSta* res_sta_arr;
 
     for ( logical_unit_type_idx = 0; logical_unit_type_idx < LOGICAL_UNIT_TYPES; logical_unit_type_idx++ )
     {
-        nr_res_stas = cpu_ptr->logical_unit_arr[curr_logical_unit_type]->nr_res_stas;
-        res_sta_arr = cpu_ptr->logical_unit_arr[curr_logical_unit_type]->res_sta_arr;
+        nr_res_stas = cpu_ptr->logical_unit_arr[logical_unit_type_idx]->nr_res_stas;
+        res_sta_arr = cpu_ptr->logical_unit_arr[logical_unit_type_idx]->res_sta_arr;
         
         for ( res_sta_idx = 0; res_sta_idx < nr_res_stas; res_sta_idx++ )
         {
             // nothing to update in the current inst.'s res. sta
-            if ( curr_logical_unit_type == logical_unit_type_idx && curr_res_sta_idx == res_sta_idx )
+            if ( curr_cdb_state->res_sta_tag.type == logical_unit_type_idx && curr_cdb_state->res_sta_tag.res_sta_idx == res_sta_idx )
                 continue; 
 
             // updating vj if needed 
-            if ( is_equal_tag ( res_sta_arr[res_sta_idx].qj, curr_node->inst_state->res_sta_tag ) )
+            if ( is_equal_tag ( res_sta_arr[res_sta_idx].qj, curr_cdb_state->res_sta_tag ) )
             {
-                res_sta_arr[res_sta_idx].vj = exec_val;
+                res_sta_arr[res_sta_idx].vj = curr_cdb_state->cdb_value;
                 res_sta_arr[res_sta_idx].qj = get_tag(NOT_INITIALZIED, NOT_INITIALZIED);
             }
             // updating vk if needed
-            if ( is_equal_tag ( res_sta_arr[res_sta_idx].qk, curr_node->inst_state->res_sta_tag ) )
+            if ( is_equal_tag ( res_sta_arr[res_sta_idx].qk, curr_cdb_state->res_sta_tag ) )
             {
-                res_sta_arr[res_sta_idx].vk = exec_val;
+                res_sta_arr[res_sta_idx].vk = curr_cdb_state->cdb_value;
                 res_sta_arr[res_sta_idx].qk = get_tag(NOT_INITIALZIED, NOT_INITIALZIED);
             }
 
         }
     }
 }
+
+void wrapper_write_cdb_update_rs_qjk_when_needed ( CPU* cpu_ptr )
+{
+    for ( int i=0; i<LOGICAL_UNIT_TYPES; i++ )
+    {
+        if ( cpu_ptr->cdb_state_arr[i].cdb_used )
+            write_cdb_update_rs_qjk_when_needed ( cpu_ptr, &cpu_ptr->cdb_state_arr[i] );
+
+    }
+}
+
+
 
 void write_cdb_update_curr_inst_state ( CPU* cpu_ptr, InstStateNode* curr_node )
 {
@@ -343,8 +356,7 @@ void execute_to_write_cdb ( CPU* cpu_ptr )
                     cpu_ptr->cdb_state_arr[curr_logical_unit_type].update_reg_file = true;
                 }
 
-                // updating vj(k), qj(k) of res. sta for which qj(k) = curr inst's tag 
-                write_cdb_update_rs_qjk_when_needed ( cpu_ptr, curr_node, curr_logical_unit_type, curr_res_sta_idx, exec_val );
+                // updating vj(k), qj(k) of res. sta for which qj(k) = curr inst's tag ==> happens only after ececution, i.e. on the next inst. start
 
                 // deleting the current inst's rs happens only after issue
 
@@ -420,7 +432,7 @@ void simulate(CPU* cpu, SimArgs sim_args)
     FILE* memin_fp = fopen(sim_args.memin, "r");
     do
     {
-        // write_cdb_update_rs_qjk_when_needed ==> to change the function and transfer it here
+        wrapper_write_cdb_update_rs_qjk_when_needed(cpu);
         write_cdb_update_register_array (cpu);
         write_cdb_delete_rs(cpu); // deleting the res. stations from prev. round. Immediately after that they would be cleaned
         clean(cpu);
