@@ -84,11 +84,11 @@ bool is_issued(InstState* inst_state){
 void print_inst_state(InstState* inst_state){
     print_inst(inst_state->inst);
     printf("pc = %2d   ", inst_state->pc);
+    printf("cycle_fetched= %2d   ", inst_state->cycle_fetched);
     printf("cycle_issued = %2d   ", inst_state->cycle_issued);
     print_tag(inst_state->res_sta_tag);
     printf("cycle_execute_start = %2d   ", inst_state->cycle_execute_start);
     printf("cycle_execute_end = %2d   ", inst_state->cycle_execute_end);
     printf("cycle_write_cdb= %2d   ", inst_state->cycle_write_cdb);
-    printf("cycle_fetched= %2d   ", inst_state->cycle_fetched);
     printf("\n");
 }
