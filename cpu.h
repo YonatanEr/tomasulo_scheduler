@@ -8,6 +8,7 @@
 #include "register_state.h"
 #include "instruction_state_lst.h"
 #include "logical_unit.h"
+#include "cdb_state.h"
 
 typedef struct CPU {
     bool halt;
@@ -16,6 +17,7 @@ typedef struct CPU {
     InstStateNode* inst_state_lst;
     RegState reg_state_arr [REGISTERS_AMOUNT];
     LogicalUnit* logical_unit_arr [LOGICAL_UNIT_TYPES];
+    CdbState cdb_state_arr [LOGICAL_UNIT_TYPES];
 } CPU;
 
 

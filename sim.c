@@ -53,20 +53,44 @@ void issue_reg_state_update(CPU* cpu, InstState* inst_state, ResSta* res_sta){
     cpu->reg_state_arr[dst].q = res_sta->tag;
 }
 
+int check_cdb_value_to_res_sta_copy(CPU* cpu, int src_reg )
+{
+    int ret_val = NOT_INITIALZIED; 
+
+    for ( int i=0; i<LOGICAL_UNIT_TYPES; i++)
+    {
+        if ( src_reg == cpu->cdb_state_arr[i].dst_reg )
+        {
+            ret_val = i; 
+        }
+    }
+
+    return ret_val;
+}
+
 void issue_res_sta_update(CPU* cpu, InstState* inst_state, ResSta* res_sta){
-    int src0=inst_state->inst.src0;
+    int cdb_idx=NOT_INITIALZIED, src0=inst_state->inst.src0, src1=inst_state->inst.src1;
     if (cpu->reg_state_arr[src0].q.type == NOT_INITIALZIED){
         res_sta->vj = cpu->reg_state_arr[src0].v;
     }
-    else{
-        res_sta->qj = cpu->reg_state_arr[src0].q;
+    else
+    {
+        cdb_idx = check_cdb_value_to_res_sta_copy( cpu, src0 );
+        if ( cdb_idx != NOT_INITIALZIED ) 
+            res_sta->vj = cpu->cdb_state_arr[cdb_idx].cdb_value;
+        else 
+            res_sta->qj = cpu->reg_state_arr[src0].q;
     }
-    int src1=inst_state->inst.src1;
     if (cpu->reg_state_arr[src1].q.type == NOT_INITIALZIED){
         res_sta->vk = cpu->reg_state_arr[src1].v;
     }
-    else{
-        res_sta->qk = cpu->reg_state_arr[src1].q;
+    else
+    {
+        cdb_idx = check_cdb_value_to_res_sta_copy( cpu, src1 );
+        if ( cdb_idx != NOT_INITIALZIED ) 
+            res_sta->vk = cpu->cdb_state_arr[cdb_idx].cdb_value;
+        else
+            res_sta->qk = cpu->reg_state_arr[src1].q;
     }
     res_sta->busy = true;
 }
@@ -210,16 +234,21 @@ float calc_exec_value( CPU* cpu_ptr, InstStateNode* curr_node, int curr_logical_
     return exec_val;
 }
 
-void write_cdb_update_register_array ( CPU* cpu_ptr, InstStateNode* curr_node, float exec_val )
+void write_cdb_update_register_array ( CPU* cpu_ptr )
 {
     int dst_reg;
-    dst_reg = curr_node->inst_state->inst.dst; // converts char to int
 
-    if ( is_equal_tag ( curr_node->inst_state->res_sta_tag, cpu_ptr->reg_state_arr[dst_reg].q ) )
-    {
-        cpu_ptr->reg_state_arr[dst_reg].q = get_tag(NOT_INITIALZIED, NOT_INITIALZIED);
-        cpu_ptr->reg_state_arr[dst_reg].v = exec_val;
+    for ( int i=0; i<LOGICAL_UNIT_TYPES; i++ )
+    { 
+        dst_reg = cpu_ptr->cdb_state_arr[i].dst_reg;
+        if ( cpu_ptr->cdb_state_arr[i].update_reg_file && 
+            is_tag_uninitialized ( cpu_ptr->reg_state_arr[dst_reg].q ) ) // the special case! - Only if the TAG is uninitialized, it means that issue hasn't been done to it 
+        {
+            cpu_ptr->reg_state_arr[dst_reg].q = get_tag(NOT_INITIALZIED, NOT_INITIALZIED);
+            cpu_ptr->reg_state_arr[dst_reg].v = cpu_ptr->cdb_state_arr[i].cdb_value;
+        }
     }
+
 }
 
 // Assumption: curr_node != NULL
@@ -261,17 +290,26 @@ void write_cdb_update_curr_inst_state ( CPU* cpu_ptr, InstStateNode* curr_node )
     curr_node->inst_state->cycle_write_cdb = cpu_ptr->cycle;
 }
 
+void initialize_cdb_state ( CPU* cpu_ptr )
+{
+    for ( int i = 0; i<LOGICAL_UNIT_TYPES; i++ )
+    {
+        cpu_ptr->cdb_state_arr[i].cdb_used = false;
+        cpu_ptr->cdb_state_arr[i].cdb_value = NOT_INITIALZIED; 
+        cpu_ptr->cdb_state_arr[i].dst_reg = NOT_INITIALZIED;
+        cpu_ptr->cdb_state_arr[i].res_sta_tag = get_tag(NOT_INITIALZIED, NOT_INITIALZIED);
+        cpu_ptr->cdb_state_arr[i].update_reg_file = false;
+    }
+}
+
 void execute_to_write_cdb ( CPU* cpu_ptr )
 {
     InstStateNode* curr_node = cpu_ptr->inst_state_lst;
-    bool cdb_used[LOGICAL_UNIT_TYPES];
-    int curr_logical_unit_type, curr_res_sta_idx, i;
+    int curr_logical_unit_type, curr_res_sta_idx;
     float exec_val;
+    int dst_reg; 
 
-    for ( i = 0; i<LOGICAL_UNIT_TYPES; i++ )
-    {
-        cdb_used[i] = false;
-    }
+    initialize_cdb_state ( cpu_ptr ); 
 
     while ( curr_node != NULL )
     {
@@ -281,16 +319,29 @@ void execute_to_write_cdb ( CPU* cpu_ptr )
             curr_logical_unit_type = curr_node->inst_state->res_sta_tag.type;
             curr_res_sta_idx = curr_node->inst_state->res_sta_tag.res_sta_idx;
 
-            if ( !cdb_used[curr_logical_unit_type] ) // cdb was not used already
+            // Only if the current cycle == cycle_exec_end + 1 ==> release the relevant fu, it happens before the issue.
+            if ( cpu_ptr->cycle == curr_node->inst_state->cycle_execute_end + 1 ) 
+                cpu_ptr->logical_unit_arr[curr_logical_unit_type]->nr_avail_fus++;
+
+            if ( !cpu_ptr->cdb_state_arr[curr_logical_unit_type].cdb_used ) // cdb was not used already
             {
                 // update cdb as used 
-                cdb_used[curr_logical_unit_type] = true;
+                cpu_ptr->cdb_state_arr[curr_logical_unit_type].cdb_used = true;
 
                 // calc. the dest reg. value
                 exec_val = calc_exec_value( cpu_ptr, curr_node, curr_logical_unit_type, curr_res_sta_idx);
+                cpu_ptr->cdb_state_arr[curr_logical_unit_type].cdb_value = exec_val;
 
-                // updating the register array 
-                write_cdb_update_register_array ( cpu_ptr, curr_node, exec_val );
+                // Store the dst_reg. and the tag of the current node for the comparison w/ the Tags of the res. sta and reg. state
+                cpu_ptr->cdb_state_arr[curr_logical_unit_type].res_sta_tag = curr_node->inst_state->res_sta_tag; 
+                dst_reg = curr_node->inst_state->inst.dst; // converts char to int
+
+                // Prep. for reg. state update in the next cycle start - Only if needed 
+                if ( is_equal_tag ( curr_node->inst_state->res_sta_tag, cpu_ptr->reg_state_arr[dst_reg].q ) )
+                {
+                    cpu_ptr->cdb_state_arr[curr_logical_unit_type].dst_reg = curr_node->inst_state->inst.dst;
+                    cpu_ptr->cdb_state_arr[curr_logical_unit_type].update_reg_file = true;
+                }
 
                 // updating vj(k), qj(k) of res. sta for which qj(k) = curr inst's tag 
                 write_cdb_update_rs_qjk_when_needed ( cpu_ptr, curr_node, curr_logical_unit_type, curr_res_sta_idx, exec_val );
@@ -306,6 +357,7 @@ void execute_to_write_cdb ( CPU* cpu_ptr )
         curr_node = curr_node->next;
     }
 }
+
 
 void write_cdb_delete_rs ( CPU* cpu_ptr )
 {
@@ -336,7 +388,7 @@ void write_cdb_delete_rs ( CPU* cpu_ptr )
     }
 }
 
-void issue_to_execute( CPU* cpu_ptr )
+void issue_to_execute_start( CPU* cpu_ptr )
 {
     InstStateNode* curr_node = cpu_ptr->inst_state_lst;
     int curr_logical_unit_type, curr_res_sta_idx; 
@@ -363,23 +415,24 @@ void issue_to_execute( CPU* cpu_ptr )
     }
 }
 
-
-void simulate(CPU* cpu, SimArgs sim_args){
+void simulate(CPU* cpu, SimArgs sim_args)
+{
     FILE* memin_fp = fopen(sim_args.memin, "r");
     do
     {
+        // write_cdb_update_rs_qjk_when_needed ==> to change the function and transfer it here
+        write_cdb_update_register_array (cpu);
         write_cdb_delete_rs(cpu); // deleting the res. stations from prev. round. Immediately after that they would be cleaned
         clean(cpu);
         execute_to_write_cdb(cpu);
-        issue_to_execute(cpu);
+        issue_to_execute_start(cpu);
         issue(cpu);
-        if (!cpu->halt){
+        if (!cpu->halt)
+        {
             fetch(cpu, memin_fp);
         }
         print_status(cpu);
         cpu->cycle++;
-        if ( cpu->cycle > 20)
-            break;
     } while (cpu->inst_state_lst);
     fclose(memin_fp);
 }

@@ -16,5 +16,6 @@ typedef struct Tag {
 Tag get_tag(int type, int res_sta_idx);
 void print_tag(Tag tag);
 bool is_equal_tag(Tag t1, Tag t2);
+bool is_tag_uninitialized(Tag t1);
 
 #endif

@@ -23,3 +23,8 @@ void print_tag(Tag t1){
 bool is_equal_tag(Tag t1, Tag t2){
     return t1.res_sta_idx==t2.res_sta_idx && t1.type==t2.type;
 }
+
+bool is_tag_uninitialized(Tag t1)
+{
+    return is_equal_tag(t1, get_tag(NOT_INITIALZIED, NOT_INITIALZIED));
+}
