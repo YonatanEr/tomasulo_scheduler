@@ -42,6 +42,7 @@ void print_logical_units_status(LogicalUnit* logical_unit_arr [LOGICAL_UNIT_TYPE
 void print_status(CPU* cpu){
     printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
     printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CYCLE #%d ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n", cpu->cycle);
+    printf("cpu->halt = %s\n\n", cpu->halt?"true":"false");
     print_instructions_state_status(cpu->inst_state_lst);
     print_registers_status(cpu->reg_state_arr);
     print_logical_units_status(cpu->logical_unit_arr);
@@ -255,19 +256,6 @@ void write_cdb_update_rs_qjk_when_needed ( CPU* cpu_ptr, InstStateNode* curr_nod
     }
 }
 
-// shorten the function arguments
-void write_cdb_delete_rs_of_curr_int ( CPU* cpu_ptr, int curr_logical_unit_type, int curr_res_sta_idx )
-{
-    // logical unit update
-    cpu_ptr->logical_unit_arr[curr_logical_unit_type]->nr_avail_res_stas++;
-
-    // current res sta update:
-    // Qj, qk must have been initialized, o.w we wouldn't have executed
-    // Tag - A const. value from initialization
-    // Vj, Vk - Would be overriden in the next res sta usage 
-    cpu_ptr->logical_unit_arr[curr_logical_unit_type]->res_sta_arr[curr_res_sta_idx].busy = false;
-}
-
 void write_cdb_update_curr_inst_state ( CPU* cpu_ptr, InstStateNode* curr_node )
 {
     curr_node->inst_state->cycle_write_cdb = cpu_ptr->cycle;
@@ -278,7 +266,7 @@ void execute_to_write_cdb ( CPU* cpu_ptr )
 {
     InstStateNode* curr_node = cpu_ptr->inst_state_lst;
     bool cdb_used[LOGICAL_UNIT_TYPES];
-    int curr_logical_unit_type, curr_res_sta_idx, dst_reg, i;
+    int curr_logical_unit_type, curr_res_sta_idx, i;
     float exec_val;
 
     for ( i = 0; i<LOGICAL_UNIT_TYPES; i++ )
@@ -308,8 +296,7 @@ void execute_to_write_cdb ( CPU* cpu_ptr )
                 // updating vj(k), qj(k) of res. sta for which qj(k) = curr inst's tag 
                 write_cdb_update_rs_qjk_when_needed ( cpu_ptr, curr_node, curr_logical_unit_type, curr_res_sta_idx, exec_val );
 
-                // deleting the current inst's rs
-                write_cdb_delete_rs_of_curr_int ( cpu_ptr, curr_logical_unit_type, curr_res_sta_idx );
+                // deleting the current inst's rs happens only after issue
 
                 // update the inst. state w/ cycle update. 
                 write_cdb_update_curr_inst_state ( cpu_ptr, curr_node );
@@ -318,6 +305,30 @@ void execute_to_write_cdb ( CPU* cpu_ptr )
             }
         }
         curr_node = curr_node->next;
+    }
+}
+
+void write_cdb_delete_rs ( CPU* cpu_ptr )
+{
+    InstStateNode* curr_node = cpu_ptr->inst_state_lst;
+    int curr_logical_unit_type, curr_res_sta_idx;
+
+    while ( curr_node != NULL )
+    {
+        if ( curr_node->inst_state->cycle_write_cdb != NOT_INITIALZIED )
+        {
+            curr_logical_unit_type = curr_node->inst_state->res_sta_tag.type;
+            curr_res_sta_idx = curr_node->inst_state->res_sta_tag.res_sta_idx;
+
+            // logical unit update
+            cpu_ptr->logical_unit_arr[curr_logical_unit_type]->nr_avail_res_stas++;
+
+            // current res sta update:
+            // Qj, qk must have been initialized, o.w we wouldn't have executed
+            // Tag - A const. value from initialization
+            // Vj, Vk - Would be overriden in the next res sta usage 
+            cpu_ptr->logical_unit_arr[curr_logical_unit_type]->res_sta_arr[curr_res_sta_idx].busy = false;
+        }
     }
 }
 
@@ -348,19 +359,23 @@ void issue_to_execute( CPU* cpu_ptr )
     }
 }
 
+
 void simulate(CPU* cpu, SimArgs sim_args){
     FILE* memin_fp = fopen(sim_args.memin, "r");
     do
     {
-        print_status(cpu);
+        write_cdb_delete_rs(cpu); // deleting the res. stations from prev. round. Immediately after that they would be cleaned
         clean(cpu);
-        //execute_to_write_cdb(cpu);
-        //issue_to_execute(cpu);
+        execute_to_write_cdb(cpu);
+        issue_to_execute(cpu);
         issue(cpu);
         if (!cpu->halt){
             fetch(cpu, memin_fp);
         }
+        print_status(cpu);
         cpu->cycle++;
+        if ( cpu->cycle > 20)
+            break;
     } while (cpu->inst_state_lst);
     fclose(memin_fp);
 }
