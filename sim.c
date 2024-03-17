@@ -259,7 +259,6 @@ void write_cdb_update_rs_qjk_when_needed ( CPU* cpu_ptr, InstStateNode* curr_nod
 void write_cdb_update_curr_inst_state ( CPU* cpu_ptr, InstStateNode* curr_node )
 {
     curr_node->inst_state->cycle_write_cdb = cpu_ptr->cycle;
-    curr_node->inst_state->res_sta_tag = get_tag(NOT_INITIALZIED, NOT_INITIALZIED);
 }
 
 void execute_to_write_cdb ( CPU* cpu_ptr )
@@ -328,7 +327,12 @@ void write_cdb_delete_rs ( CPU* cpu_ptr )
             // Tag - A const. value from initialization
             // Vj, Vk - Would be overriden in the next res sta usage 
             cpu_ptr->logical_unit_arr[curr_logical_unit_type]->res_sta_arr[curr_res_sta_idx].busy = false;
+
+            // Inst. state update - The res. station has been released:
+            curr_node->inst_state->res_sta_tag = get_tag(NOT_INITIALZIED, NOT_INITIALZIED);
         }
+
+        curr_node = curr_node->next;
     }
 }
 
