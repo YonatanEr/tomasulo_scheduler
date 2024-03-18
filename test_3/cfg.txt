@@ -1,0 +1,9 @@
+add_nr_units = 100
+mul_nr_units = 100
+div_nr_units = 100
+add_nr_reservation = 100
+mul_nr_reservation = 100
+div_nr_reservation = 100
+add_delay = 100
+mul_delay = 100
+div_delay = 100

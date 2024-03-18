@@ -106,9 +106,12 @@ void issue(CPU* cpu){
     InstStateNode* inst_state_node = cpu->inst_state_lst;
     while (inst_state_node!=NULL && current_cycle_issues_counter<ISSUES_PER_CYCLE){
         LogicalUnit* logical_unit = cpu->logical_unit_arr[opcode2type(inst_state_node->inst_state->inst)];
-        if (is_issued(inst_state_node->inst_state) || logical_unit->nr_avail_res_stas==0){
+        if (is_issued(inst_state_node->inst_state)){
             inst_state_node = inst_state_node->next;
             continue;
+        }
+        if (logical_unit->nr_avail_res_stas==0){
+            break;
         }
         ResSta* res_sta = &(logical_unit->res_sta_arr[get_available_res_sta_idx(logical_unit)]);
         issue_inst_state_update(cpu, inst_state_node->inst_state, res_sta);
