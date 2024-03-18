@@ -248,8 +248,8 @@ void write_cdb_update_register_array ( CPU* cpu_ptr )
             is_tag_uninitialized ( cpu_ptr->reg_state_arr[dst_reg].q ) ) // the special case! - Only if the TAG is uninitialized, it means that issue hasn't been done to it 
         {
             cpu_ptr->reg_state_arr[dst_reg].q = get_tag(NOT_INITIALZIED, NOT_INITIALZIED);
-            cpu_ptr->reg_state_arr[dst_reg].v = cpu_ptr->cdb_state_arr[i].cdb_value;
         }
+        cpu_ptr->reg_state_arr[dst_reg].v = cpu_ptr->cdb_state_arr[i].cdb_value;
     }
 
 }
@@ -446,7 +446,7 @@ void simulate(CPU* cpu, SimArgs sim_args)
         {
             fetch(cpu, memin_fp);
         }
-        print_status(cpu);
+        //print_status(cpu);
         cpu->cycle++;
     } while (cpu->inst_state_lst);
     fclose(memin_fp);
