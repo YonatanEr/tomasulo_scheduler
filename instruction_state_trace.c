@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 
+// frees the whole lst recursively
 void free_inst_state_trace(InstStateTrace* node){
     if (node != NULL){
         free_inst_state_trace(node->next);
@@ -13,6 +14,7 @@ void free_inst_state_trace(InstStateTrace* node){
 }
 
 
+// returns a new node with the instruction state attributes
 InstStateTrace* create_trace_node(InstState inst_state){
     InstStateTrace* node = (InstStateTrace*) calloc (1, sizeof(InstStateTrace));
     assert(node);
@@ -22,6 +24,7 @@ InstStateTrace* create_trace_node(InstState inst_state){
 }
 
 
+// returns a pointer to the location that pc need to be inserted to
 InstStateTrace* find_prev(InstStateTrace** lst, int pc){
     InstStateTrace* prev = *lst;
     InstStateTrace* cur = prev->next;
@@ -36,6 +39,7 @@ InstStateTrace* find_prev(InstStateTrace** lst, int pc){
 } 
 
 
+// insert a new instruction state into the lst
 void insert_to_inst_state_trace(InstStateTrace** lst, InstState inst_state){
     InstStateTrace* new_node = create_trace_node(inst_state);
     if (*lst == NULL){

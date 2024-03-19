@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 
+// initialize a logical unit in the CPU
 void init_logical_unit(LogicalUnit** logical_unit_ptr, int type){
     LogicalUnit* logical_unit = *logical_unit_ptr;
     logical_unit->nr_avail_fus = logical_unit->nr_fus;
@@ -15,6 +16,8 @@ void init_logical_unit(LogicalUnit** logical_unit_ptr, int type){
     }
 }
 
+
+// returns an index to the first available logical unit
 int get_available_res_sta_idx(LogicalUnit* logical_unit){
     for (int i=0; i<logical_unit->nr_res_stas; i++){
         if(!logical_unit->res_sta_arr[i].busy){
@@ -24,11 +27,15 @@ int get_available_res_sta_idx(LogicalUnit* logical_unit){
     assert(NULL);
 }
 
+
+// frees a single logical unit struct
 void free_logical_unit(LogicalUnit* logical_unit){
     free(logical_unit->res_sta_arr);
     logical_unit->res_sta_arr = NULL;
 }
 
+
+// prints a single logical unit struct
 void print_logical_unit(LogicalUnit* logical_unit){  
     printf("        logical_unit->nr_fus            =   %2d\n", logical_unit->nr_fus);
     printf("        logical_unit->nr_avail_fus      =   %2d\n", logical_unit->nr_avail_fus);

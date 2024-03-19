@@ -7,6 +7,7 @@
 
 #define MAX_CFG_FILE_LINE_LENGTH 64
 
+// returns true iff str starts with prefix
 bool startswith(char* prefix, char* str){
     int prefix_len=strlen(prefix), str_len=strlen(str);
     if (prefix_len > str_len){
@@ -20,6 +21,7 @@ bool startswith(char* prefix, char* str){
     return true;
 }
 
+// parses the parameter from a line
 int parameter(char* line){
     char* token = NULL;
     token = strtok(line, " ");
@@ -28,6 +30,7 @@ int parameter(char* line){
     return atoi(token);
 }
 
+// reads the cpu cfg file to update in the cpu struct
 void read_cpu_cfg(CPU** cpu_ptr, char* cfg_file_path){
     CPU* cpu = *cpu_ptr;
     FILE* fp = fopen(cfg_file_path, "r");
@@ -74,6 +77,7 @@ void read_cpu_cfg(CPU** cpu_ptr, char* cfg_file_path){
     fclose(fp);
 }
 
+// initialize a new instance of CPU with all attributes initilized
 CPU* init_cpu(char* cfg_file_path){
     CPU* cpu = (CPU*) calloc (1, sizeof(CPU));
     assert(cpu);
@@ -98,6 +102,7 @@ CPU* init_cpu(char* cfg_file_path){
     return cpu;
 }
 
+// frees the whole CPU struct
 void free_cpu(CPU* cpu){
     free_inst_state_lst(cpu->inst_state_lst);
     free_inst_state_trace(cpu->inst_state_trace);

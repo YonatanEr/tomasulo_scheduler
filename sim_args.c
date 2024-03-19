@@ -1,6 +1,8 @@
 #include "sim_args.h"
 #include <assert.h>
 
+
+// parses the input into a SimArgs struct
 SimArgs parse_args(int argc, char **argv){
     assert(argc==6);
     SimArgs sim_args;

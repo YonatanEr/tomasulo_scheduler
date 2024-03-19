@@ -1,4 +1,13 @@
 def line2opcode(line):
+    '''   DST = SRC0 OP SRC0    ->    instruction 
+    line examples:  
+        F1 = F2 + F3
+        F1 =    F2   +      F3
+        F1 =    F2   -      F3
+        F1 =    F2   *      F3
+        F1 =    F2   /      F3
+        HALT
+    '''
     line = line.upper().rstrip()
     line = line.replace(" ", "").replace("[", "").replace("]", "")
     if "//" in line:

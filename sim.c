@@ -12,11 +12,14 @@
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 
 
+// prints the current instructions state status
 void print_instructions_state_status(InstStateNode* inst_state_node){
     printf("\nCURRENT INSTRUCTIONS STATE STATUS\n");
     print_inst_state_lst(inst_state_node);    
 }
 
+
+// prints the current registers status
 void print_registers_status(RegState reg_state_arr [REGISTERS_AMOUNT]){
     printf("\nCURRENT REGISTERS STATE STATUS\n");
     for (int i=0; i<REGISTERS_AMOUNT; i++){
@@ -30,6 +33,8 @@ void print_registers_status(RegState reg_state_arr [REGISTERS_AMOUNT]){
     printf("        ----------------------------------------------------------\n");
 }
 
+
+// prints the current logical units
 void print_logical_units_status(LogicalUnit* logical_unit_arr [LOGICAL_UNIT_TYPES]){
     printf("\nCURRENT LOGICAL UNITS STATUS\n");
     char* idx2name[3] = {"ADD", "MUL", "DIV"};
@@ -39,6 +44,8 @@ void print_logical_units_status(LogicalUnit* logical_unit_arr [LOGICAL_UNIT_TYPE
     }
 }
 
+
+// prints the current simulation status
 void print_status(CPU* cpu){
     printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
     printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CYCLE #%d ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n", cpu->cycle);
@@ -48,11 +55,15 @@ void print_status(CPU* cpu){
     print_logical_units_status(cpu->logical_unit_arr);
 }
 
+
+// updates the register state which was just issued
 void issue_reg_state_update(CPU* cpu, InstState* inst_state, ResSta* res_sta){
     int dst=inst_state->inst.dst;
     cpu->reg_state_arr[dst].q = res_sta->tag;
 }
 
+
+// returns the index which is waiting for the dst reg, if there isn't -1
 int check_cdb_value_to_res_sta_copy(CPU* cpu, int src_reg )
 {
     int ret_val = NOT_INITIALZIED; 
@@ -68,6 +79,8 @@ int check_cdb_value_to_res_sta_copy(CPU* cpu, int src_reg )
     return ret_val;
 }
 
+
+// updates the reservation station of the issued instructions
 void issue_res_sta_update(CPU* cpu, InstState* inst_state, ResSta* res_sta){
     int cdb_idx=NOT_INITIALZIED, src0=inst_state->inst.src0, src1=inst_state->inst.src1;
     if (cpu->reg_state_arr[src0].q.type == NOT_INITIALZIED){
@@ -96,11 +109,14 @@ void issue_res_sta_update(CPU* cpu, InstState* inst_state, ResSta* res_sta){
 }
 
 
+// updates the reservation station of the issued instructions
 void issue_inst_state_update(CPU* cpu, InstState* inst_state, ResSta* res_sta){
     inst_state->cycle_issued = cpu->cycle;
     inst_state->res_sta_tag = res_sta->tag;
 }
 
+
+// issues up to 2 new instrctions 
 void issue(CPU* cpu){
     int current_cycle_issues_counter = 0;
     InstStateNode* inst_state_node = cpu->inst_state_lst;
@@ -124,10 +140,14 @@ void issue(CPU* cpu){
     // update trace file
 }
 
+
+// returns true iff the instruction is terminated
 bool can_be_cleaned(CPU* cpu, InstStateNode* node){
     return (node->inst_state->cycle_write_cdb != NOT_INITIALZIED) && (node->inst_state->cycle_write_cdb < cpu->cycle);
 }
 
+
+// cleans the beginning instruction if terminated
 void clean_head(CPU* cpu){
     if (cpu->inst_state_lst == NULL){
         return;
@@ -141,6 +161,8 @@ void clean_head(CPU* cpu){
     }
 }
 
+
+// cleans all middle instructions which are terminated
 void clean_bypass(CPU* cpu){
     if (cpu->inst_state_lst == NULL || cpu->inst_state_lst->next == NULL || cpu->inst_state_lst->next->next == NULL){
         return;
@@ -161,6 +183,8 @@ void clean_bypass(CPU* cpu){
     }
 }
 
+
+// cleans the last instruction if terminated
 void clean_tail(CPU* cpu){
     if (inst_state_lst_len(cpu->inst_state_lst) < 2){
         return;
@@ -178,12 +202,16 @@ void clean_tail(CPU* cpu){
     }
 }
 
+
+// cleans terminated instructions
 void clean(CPU* cpu){
     clean_bypass(cpu);
     clean_head(cpu);
     clean_tail(cpu);
 }
 
+
+// fetches up to 2 new instructions
 void fetch(CPU* cpu, FILE* memin_fp){
     char cycle_fetches = MIN(MAX_INSTRUCTION_STATE_LIST_SIZE - inst_state_lst_len(cpu->inst_state_lst), FETCHES_PER_CYCLE);
     while (cycle_fetches--){
@@ -201,11 +229,11 @@ void fetch(CPU* cpu, FILE* memin_fp){
             insert_inst_state(&(cpu->inst_state_lst), _inst, cpu->pc++, cpu->cycle);
         }
     }
-    // for each instruction, add cycle fetched
 }
 
+
+// computes the values for all the available functional units 
 float calc_exec_value( CPU* cpu_ptr, InstStateNode* curr_node, int curr_logical_unit_type, int curr_res_sta_idx )
-// Assumption: curr_node != NULL
 {
     float vj, vk, exec_val;
 
@@ -236,6 +264,8 @@ float calc_exec_value( CPU* cpu_ptr, InstStateNode* curr_node, int curr_logical_
     return exec_val;
 }
 
+
+// after updating the cdb, updates the registers values
 void write_cdb_update_register_array ( CPU* cpu_ptr )
 {
     int dst_reg;
@@ -250,6 +280,7 @@ void write_cdb_update_register_array ( CPU* cpu_ptr )
 }
 
 
+// with a used cdb checks if there is some reservation station waiting for a value
 void write_cdb_update_rs_qjk_when_needed ( CPU* cpu_ptr, CdbState* curr_cdb_state )
 {
     int nr_res_stas, logical_unit_type_idx, res_sta_idx; 
@@ -283,6 +314,8 @@ void write_cdb_update_rs_qjk_when_needed ( CPU* cpu_ptr, CdbState* curr_cdb_stat
     }
 }
 
+
+// iterates over the cdb and checks if there is some reservation station waiting for a value
 void wrapper_write_cdb_update_rs_qjk_when_needed ( CPU* cpu_ptr )
 {
     for ( int i=0; i<LOGICAL_UNIT_TYPES; i++ )
@@ -294,11 +327,14 @@ void wrapper_write_cdb_update_rs_qjk_when_needed ( CPU* cpu_ptr )
 }
 
 
+// updates the write cdb attribute in the instruction state
 void write_cdb_update_curr_inst_state ( CPU* cpu_ptr, InstStateNode* curr_node )
 {
     curr_node->inst_state->cycle_write_cdb = cpu_ptr->cycle;
 }
 
+
+// clears the current cdb attributes
 void initialize_cdb_state ( CPU* cpu_ptr )
 {
     for ( int i = 0; i<LOGICAL_UNIT_TYPES; i++ )
@@ -311,8 +347,11 @@ void initialize_cdb_state ( CPU* cpu_ptr )
     }
 }
 
-void execute_to_write_cdb ( CPU* cpu_ptr )
+
+// updates all the instrctions that are in execute status, and waiting for write cdb
+void execute_to_write_cdb ( CPU* cpu_ptr , char* tracecdb)
 {
+    char* idx2name[3] = {"ADD", "MUL", "DIV"};
     InstStateNode* curr_node = cpu_ptr->inst_state_lst;
     int curr_logical_unit_type, curr_res_sta_idx;
     float exec_val;
@@ -359,16 +398,27 @@ void execute_to_write_cdb ( CPU* cpu_ptr )
                 // update the inst. state w/ cycle update. 
                 write_cdb_update_curr_inst_state ( cpu_ptr, curr_node );
 
-                // traceinst ready
+                // tracecdb update
+                FILE* fp = fopen(tracecdb , "a");
+                assert(fp);
+                fprintf(fp, "%d ", curr_node->inst_state->cycle_write_cdb);
+                fprintf(fp, "%d ", curr_node->inst_state->pc);
+                fprintf(fp, "%s ", idx2name[curr_node->inst_state->res_sta_tag.type]);
+                fprintf(fp, "%f ", cpu_ptr->cdb_state_arr[curr_logical_unit_type].cdb_value);
+                fprintf(fp, "%s%d\n", idx2name[curr_node->inst_state->res_sta_tag.type], curr_node->inst_state->res_sta_tag.res_sta_idx);
+                fclose(fp);
 
+                // traceinst insert
                 insert_to_inst_state_trace(&(cpu_ptr->inst_state_trace), *(curr_node->inst_state));
             }
         }
         curr_node = curr_node->next;
     }
+
 }
 
 
+// after using th cdb, clears the data in the reservation station
 void write_cdb_delete_rs ( CPU* cpu_ptr )
 {
     InstStateNode* curr_node = cpu_ptr->inst_state_lst;
@@ -397,6 +447,8 @@ void write_cdb_delete_rs ( CPU* cpu_ptr )
     }
 }
 
+
+// updates all the instrctions that are in issue status, and can start execution
 void issue_to_execute_start( CPU* cpu_ptr )
 {
     InstStateNode* curr_node = cpu_ptr->inst_state_lst;
@@ -424,6 +476,8 @@ void issue_to_execute_start( CPU* cpu_ptr )
     }
 }
 
+
+// runs the simulation till no pending instructions
 void simulate(CPU* cpu, SimArgs sim_args)
 {
     FILE* memin_fp = fopen(sim_args.memin, "r");
@@ -433,7 +487,7 @@ void simulate(CPU* cpu, SimArgs sim_args)
         write_cdb_update_register_array (cpu);
         write_cdb_delete_rs(cpu); // deleting the res. stations from prev. round. Immediately after that they would be cleaned
         clean(cpu);
-        execute_to_write_cdb(cpu);
+        execute_to_write_cdb(cpu, sim_args.tracecdb);
         issue_to_execute_start(cpu);
         issue(cpu);
         if (!cpu->halt)
@@ -446,6 +500,8 @@ void simulate(CPU* cpu, SimArgs sim_args)
     fclose(memin_fp);
 }
 
+
+// writes the regout file
 void regout(CPU* cpu, char* regout_file_path){
     FILE* fp = fopen(regout_file_path , "w");
     assert(fp);
@@ -455,6 +511,8 @@ void regout(CPU* cpu, char* regout_file_path){
     fclose(fp);
 }
 
+
+// writes the traceinst file
 void traceinst(CPU* cpu, char* traceinst_file_path){
     FILE* fp = fopen(traceinst_file_path , "w");
     assert(fp);
@@ -467,13 +525,14 @@ void traceinst(CPU* cpu, char* traceinst_file_path){
         fprintf(fp, "%d ", node->inst_state.cycle_issued);
         fprintf(fp, "%d ", node->inst_state.cycle_execute_start);
         fprintf(fp, "%d ", node->inst_state.cycle_execute_end);
-        fprintf(fp, "%d ", node->inst_state.cycle_write_cdb);
-        fprintf(fp, "\n");
+        fprintf(fp, "%d\n", node->inst_state.cycle_write_cdb);
         node = node->next;
     }
     fclose(fp);
 }
 
+
+// runs the whole scenario
 int main(int argc, char **argv){
     SimArgs sim_args = parse_args(argc, argv);
     CPU* cpu = init_cpu(sim_args.cfg);

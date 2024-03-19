@@ -4,10 +4,13 @@
 #include <stdio.h>
 
 
+// returns true iff the instruction is HALT
 bool is_halt(int _inst){
     return ((_inst >> 24) & 0xf) == HALT_OPCODE;
 }
 
+
+// return a new struct to represent the parsed instruction
 Inst parse_inst(int _inst){
     Inst inst;
     inst.opcode = (_inst >> 24) & 0xf;
@@ -17,6 +20,8 @@ Inst parse_inst(int _inst){
     return inst;
 }
 
+
+// maps the given opcode to the index of the logical unit
 int opcode2type(Inst inst){
     switch (inst.opcode)
     {
@@ -34,6 +39,8 @@ int opcode2type(Inst inst){
     }
 }
 
+
+// prints a single instruction
 void print_inst(Inst inst){
     char operation;
     switch (inst.opcode)
@@ -58,6 +65,7 @@ void print_inst(Inst inst){
 }
 
 
+// returns an initialized pointer to a new instrction state
 InstState* init_instruction_state(int _inst, int pc, int cycle_fetched){
     InstState* inst_state = (InstState*) malloc (1 * sizeof(InstState));
     assert(inst_state);
@@ -72,15 +80,21 @@ InstState* init_instruction_state(int _inst, int pc, int cycle_fetched){
     return inst_state;
 }
 
+
+// frees a single instruction state struct
 void free_instruction_state(InstState* inst_state){
     free(inst_state);
     inst_state = NULL;
 }
 
+
+// returns true iff the instruction was already issued
 bool is_issued(InstState* inst_state){
     return inst_state->cycle_issued != NOT_INITIALZIED;
 }
 
+
+// prints all the instrctions states table
 void print_inst_state(InstState* inst_state){
     print_inst(inst_state->inst);
     printf("pc = %2d   ", inst_state->pc);
