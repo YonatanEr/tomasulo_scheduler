@@ -44,8 +44,8 @@ void print_status(CPU* cpu){
     printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CYCLE #%d ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n", cpu->cycle);
     printf("cpu->halt = %s\n\n", cpu->halt?"true":"false");
     print_instructions_state_status(cpu->inst_state_lst);
-    print_registers_status(cpu->reg_state_arr);
-    print_logical_units_status(cpu->logical_unit_arr);
+    //print_registers_status(cpu->reg_state_arr);
+    //print_logical_units_status(cpu->logical_unit_arr);
 }
 
 void issue_reg_state_update(CPU* cpu, InstState* inst_state, ResSta* res_sta){
@@ -240,18 +240,14 @@ float calc_exec_value( CPU* cpu_ptr, InstStateNode* curr_node, int curr_logical_
 void write_cdb_update_register_array ( CPU* cpu_ptr )
 {
     int dst_reg;
-
     for ( int i=0; i<LOGICAL_UNIT_TYPES; i++ )
     { 
         dst_reg = cpu_ptr->cdb_state_arr[i].dst_reg;
-        if ( cpu_ptr->cdb_state_arr[i].update_reg_file && 
-            is_tag_uninitialized ( cpu_ptr->reg_state_arr[dst_reg].q ) ) // the special case! - Only if the TAG is uninitialized, it means that issue hasn't been done to it 
+        if ( cpu_ptr->cdb_state_arr[i].update_reg_file )
         {
-            cpu_ptr->reg_state_arr[dst_reg].q = get_tag(NOT_INITIALZIED, NOT_INITIALZIED);
+            cpu_ptr->reg_state_arr[dst_reg].v = cpu_ptr->cdb_state_arr[i].cdb_value;
         }
-        cpu_ptr->reg_state_arr[dst_reg].v = cpu_ptr->cdb_state_arr[i].cdb_value;
     }
-
 }
 
 
@@ -378,9 +374,9 @@ void write_cdb_delete_rs ( CPU* cpu_ptr )
 {
     InstStateNode* curr_node = cpu_ptr->inst_state_lst;
     int curr_logical_unit_type, curr_res_sta_idx;
-
     while ( curr_node != NULL )
     {
+        printf("write_cdb_delete_rs\n");    
         if ( curr_node->inst_state->cycle_write_cdb != NOT_INITIALZIED )
         {
             curr_logical_unit_type = curr_node->inst_state->res_sta_tag.type;
@@ -446,7 +442,7 @@ void simulate(CPU* cpu, SimArgs sim_args)
         {
             fetch(cpu, memin_fp);
         }
-        //print_status(cpu);
+        print_status(cpu);
         cpu->cycle++;
     } while (cpu->inst_state_lst);
     fclose(memin_fp);
@@ -461,10 +457,29 @@ void regout(CPU* cpu, char* regout_file_path){
     fclose(fp);
 }
 
+void traceinst(CPU* cpu, char* traceinst_file_path){
+    FILE* fp = fopen(traceinst_file_path , "w");
+    assert(fp);
+    InstStateTrace* node = cpu->inst_state_trace;
+    char* idx2name[3] = {"ADD", "MUL", "DIV"};
+    while (node != NULL){
+        fprintf(fp, "0%x%x%x%x000 ", node->inst_state.inst.opcode, node->inst_state.inst.dst, node->inst_state.inst.src0, node->inst_state.inst.src1);
+        fprintf(fp, "%d ", node->inst_state.pc);
+        fprintf(fp, "%s%d ", idx2name[node->inst_state.res_sta_tag.type], node->inst_state.res_sta_tag.res_sta_idx);
+        fprintf(fp, "%d ", node->inst_state.cycle_issued);
+        fprintf(fp, "%d ", node->inst_state.cycle_execute_start);
+        fprintf(fp, "%d ", node->inst_state.cycle_execute_end);
+        fprintf(fp, "%d ", node->inst_state.cycle_write_cdb);
+        fprintf(fp, "\n");
+    }
+    fclose(fp);
+}
+
 int main(int argc, char **argv){
     SimArgs sim_args = parse_args(argc, argv);
     CPU* cpu = init_cpu(sim_args.cfg);
     simulate(cpu, sim_args);
     regout(cpu, sim_args.regout);
+    traceinst(cpu, sim_args.traceinst);
     free_cpu(cpu);
 }

@@ -81,6 +81,7 @@ CPU* init_cpu(char* cfg_file_path){
     cpu->cycle = 0;
     cpu->pc = 0;
     cpu->inst_state_lst = NULL;
+    cpu->inst_state_trace = NULL;
     for (int i=0; i<REGISTERS_AMOUNT; i++){
         cpu->reg_state_arr[i].v = i;
         cpu->reg_state_arr[i].q = get_tag(NOT_INITIALZIED, NOT_INITIALZIED);
@@ -99,6 +100,7 @@ CPU* init_cpu(char* cfg_file_path){
 
 void free_cpu(CPU* cpu){
     free_inst_state_lst(cpu->inst_state_lst);
+    free_inst_state_trace(cpu->inst_state_trace);
     for (int type=0; type<LOGICAL_UNIT_TYPES; type++){
         LogicalUnit* logical_unit = cpu->logical_unit_arr[type];
         free_logical_unit(logical_unit);
