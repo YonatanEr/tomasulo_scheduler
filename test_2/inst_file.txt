@@ -1,4 +1,4 @@
 
 F1 = F2 * F3        // 0, 1, 2, 3, 4
-F4 = F2 * F3        // 0, 1, 2, 4, 5            // arbitration on the MUL CDB
+F4 = F2 * F3        // 0, 1, 2, 3, 5            // arbitration on the MUL CDB
 HALT

@@ -44,8 +44,8 @@ void print_status(CPU* cpu){
     printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CYCLE #%d ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n", cpu->cycle);
     printf("cpu->halt = %s\n\n", cpu->halt?"true":"false");
     print_instructions_state_status(cpu->inst_state_lst);
-    //print_registers_status(cpu->reg_state_arr);
-    //print_logical_units_status(cpu->logical_unit_arr);
+    print_registers_status(cpu->reg_state_arr);
+    print_logical_units_status(cpu->logical_unit_arr);
 }
 
 void issue_reg_state_update(CPU* cpu, InstState* inst_state, ResSta* res_sta){
@@ -179,7 +179,6 @@ void clean_tail(CPU* cpu){
 }
 
 void clean(CPU* cpu){
-    // update trace file
     clean_bypass(cpu);
     clean_head(cpu);
     clean_tail(cpu);
@@ -251,7 +250,6 @@ void write_cdb_update_register_array ( CPU* cpu_ptr )
 }
 
 
-// Assumption: curr_node != NULL
 void write_cdb_update_rs_qjk_when_needed ( CPU* cpu_ptr, CdbState* curr_cdb_state )
 {
     int nr_res_stas, logical_unit_type_idx, res_sta_idx; 
@@ -294,7 +292,6 @@ void wrapper_write_cdb_update_rs_qjk_when_needed ( CPU* cpu_ptr )
 
     }
 }
-
 
 
 void write_cdb_update_curr_inst_state ( CPU* cpu_ptr, InstStateNode* curr_node )
@@ -362,7 +359,9 @@ void execute_to_write_cdb ( CPU* cpu_ptr )
                 // update the inst. state w/ cycle update. 
                 write_cdb_update_curr_inst_state ( cpu_ptr, curr_node );
 
-                // file update: cdb
+                // traceinst ready
+
+                insert_to_inst_state_trace(&(cpu_ptr->inst_state_trace), *(curr_node->inst_state));
             }
         }
         curr_node = curr_node->next;
@@ -376,7 +375,6 @@ void write_cdb_delete_rs ( CPU* cpu_ptr )
     int curr_logical_unit_type, curr_res_sta_idx;
     while ( curr_node != NULL )
     {
-        printf("write_cdb_delete_rs\n");    
         if ( curr_node->inst_state->cycle_write_cdb != NOT_INITIALZIED )
         {
             curr_logical_unit_type = curr_node->inst_state->res_sta_tag.type;
@@ -442,7 +440,7 @@ void simulate(CPU* cpu, SimArgs sim_args)
         {
             fetch(cpu, memin_fp);
         }
-        print_status(cpu);
+        //print_status(cpu);
         cpu->cycle++;
     } while (cpu->inst_state_lst);
     fclose(memin_fp);
@@ -471,6 +469,7 @@ void traceinst(CPU* cpu, char* traceinst_file_path){
         fprintf(fp, "%d ", node->inst_state.cycle_execute_end);
         fprintf(fp, "%d ", node->inst_state.cycle_write_cdb);
         fprintf(fp, "\n");
+        node = node->next;
     }
     fclose(fp);
 }
