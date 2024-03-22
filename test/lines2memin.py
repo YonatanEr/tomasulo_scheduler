@@ -37,7 +37,7 @@ def line2opcode(line):
     return f"0{opcode}{dst[2:]}{src0[2:]}{src1[2:]}000"
 
 
-INPUT_FILE = "TO_SUBMIT_TEST_2/inst_file.txt"
+INPUT_FILE = "TO_SUBMIT_TEST_3/inst_file.txt"
 MEMIN_FILE = f"{INPUT_FILE.split('.')[0]}_meming.txt"
 REGOUT_FILE = f"{INPUT_FILE.split('.')[0]}_expected_regout.txt"
 inp = open(INPUT_FILE, "r")
