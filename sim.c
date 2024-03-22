@@ -275,6 +275,7 @@ void write_cdb_update_register_array ( CPU* cpu_ptr )
         if ( cpu_ptr->cdb_state_arr[i].update_reg_file )
         {
             cpu_ptr->reg_state_arr[dst_reg].v = cpu_ptr->cdb_state_arr[i].cdb_value;
+            cpu_ptr->reg_state_arr[dst_reg].q = get_tag(NOT_INITIALZIED, NOT_INITIALZIED);
         }
     }
 }
