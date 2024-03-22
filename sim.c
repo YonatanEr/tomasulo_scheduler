@@ -58,8 +58,13 @@ void print_status(CPU* cpu){
 
 // updates the register state which was just issued
 void issue_reg_state_update(CPU* cpu, InstState* inst_state, ResSta* res_sta){
-    int dst=inst_state->inst.dst;
+    int dst = inst_state->inst.dst;
     cpu->reg_state_arr[dst].q = res_sta->tag;
+    for (int type=0; type<LOGICAL_UNIT_TYPES; type++){
+        if (cpu->cdb_state_arr[type].dst_reg == dst){
+            cpu->cdb_state_arr[type].update_reg_file = false;
+        }
+    }
 }
 
 
@@ -323,7 +328,6 @@ void wrapper_write_cdb_update_rs_qjk_when_needed ( CPU* cpu_ptr )
     {
         if ( cpu_ptr->cdb_state_arr[i].cdb_used )
             write_cdb_update_rs_qjk_when_needed ( cpu_ptr, &cpu_ptr->cdb_state_arr[i] );
-
     }
 }
 
@@ -495,7 +499,6 @@ void simulate(CPU* cpu, SimArgs sim_args)
         {
             fetch(cpu, memin_fp);
         }
-        //print_status(cpu);
         cpu->cycle++;
     } while (cpu->inst_state_lst);
     fclose(memin_fp);
