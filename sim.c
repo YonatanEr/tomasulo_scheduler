@@ -539,7 +539,7 @@ void traceinst(CPU* cpu, char* traceinst_file_path){
 // runs the whole scenario
 int main(int argc, char **argv){
     SimArgs sim_args = parse_args(argc, argv);
-    FILE* fp = fopen(sim_args.tracecdb , "a");
+    FILE* fp = fopen(sim_args.tracecdb , "w");
     assert(fp);
     fclose(fp);
     CPU* cpu = init_cpu(sim_args.cfg);
